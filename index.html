@@ -1,1 +1,2106 @@
-hola xd
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Bus Creator – Tucumán</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Bus Creator es una herramienta interactiva para crear, editar y visualizar líneas de bus en un mapa. Diseña recorridos, agrega paradas y simula el movimiento de los buses en tiempo real." />
+  <meta name="keywords" content="bus creator, líneas de bus, simulador bus, mapa transporte, bus route planner, Tucumán" />
+  <meta name="author" content="Bus Creator" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://buscreator.app/" />
+
+  <!-- Open Graph (Facebook / LinkedIn / WhatsApp) -->
+  <meta property="og:title" content="Bus Creator – Diseña líneas de bus en el mapa" />
+  <meta property="og:description" content="Crea, edita y visualiza líneas de bus interactivas. Agrega paradas, diseña recorridos y observa los buses moverse en tiempo real sobre el mapa." />
+  <meta property="og:image" content="https://buscreator.app/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://buscreator.app/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Bus Creator" />
+  <meta property="og:locale" content="es_AR" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:locale:alternate" content="pt_BR" />
+  <meta property="og:locale:alternate" content="ru_RU" />
+  <meta property="og:locale:alternate" content="de_DE" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Bus Creator – Diseña líneas de bus en el mapa" />
+  <meta name="twitter:description" content="Crea, edita y visualiza líneas de bus interactivas con paradas y animaciones en tiempo real." />
+  <meta name="twitter:image" content="https://buscreator.app/og-image.png" />
+
+  <!-- Schema.org / JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Bus Creator",
+    "url": "https://buscreator.app/",
+    "description": "Herramienta interactiva para crear y visualizar líneas de bus en mapas.",
+    "applicationCategory": "UtilityApplication",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <!-- Favicon placeholder -->
+  <link rel="icon" type="image/svg+xml" data-href="data:image/svg+xml," href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a1a2e'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='18' fill='%23e94560'%3E🚌%3C/text%3E%3C/svg%3E" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+
+  <style>
+    /* ============================================================
+       TOKENS & PALETA — Tema Industrial Oscuro
+       ============================================================ */
+    :root {
+      --bg-deep:      #0f0f14;
+      --bg-surface:   #1a1a24;
+      --bg-raised:    #222230;
+      --bg-hover:     #2a2a3a;
+      --border:       #2e2e3e;
+      --text-primary: #f0f0f5;
+      --text-secondary:#8a8a9a;
+      --text-muted:   #555566;
+      --accent:       #e94560;
+      --accent-dim:   rgba(233,69,96,0.15);
+      --accent-glow:  rgba(233,69,96,0.35);
+      --teal:         #00c9a7;
+      --teal-dim:     rgba(0,201,167,0.12);
+      --gold:         #f0a500;
+      --gold-dim:     rgba(240,165,0,0.12);
+      --stop-color:   #f0a500;
+      --bus-color:    #00c9a7;
+      --radius:       10px;
+      --radius-sm:    6px;
+      --shadow:       0 4px 24px rgba(0,0,0,0.4);
+      --shadow-sm:    0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================================================
+       LANGUAGE SWITCHER — top-right corner, always visible on home
+       ============================================================ */
+    #lang-switcher {
+      position: fixed;
+      top: 12px;
+      right: 14px;
+      z-index: 2500;
+      display: flex;
+      gap: 4px;
+    }
+    .lang-btn {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      padding: 5px 8px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all .2s;
+      text-transform: uppercase;
+    }
+    .lang-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .lang-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ============================================================
+       HOME SCREEN
+       ============================================================ */
+    #home-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: var(--bg-deep);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+    }
+
+    /* Subtle geometric noise bg */
+    #home-screen::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(233,69,96,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 20% 80%, rgba(0,201,167,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .home-hero {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      padding: 70px 24px 40px;
+      text-align: center;
+    }
+
+    .home-logo-ring {
+      width: 88px; height: 88px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 22px;
+      position: relative;
+    }
+    .home-logo-ring::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 2px dashed var(--accent);
+      opacity: 0.35;
+      animation: spin 18s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .home-logo-ring i {
+      font-size: 2.4rem;
+      color: var(--accent);
+      filter: drop-shadow(0 0 8px var(--accent-glow));
+    }
+
+    .home-hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.9rem;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .home-hero h1 span { color: var(--accent); }
+
+    .home-hero p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      font-weight: 300;
+      max-width: 260px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Menu grid */
+    .menu-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 90%;
+      max-width: 360px;
+      padding-bottom: 50px;
+    }
+
+    .menu-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 14px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .menu-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--card-accent, var(--accent));
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .menu-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--card-accent, var(--accent));
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    }
+    .menu-card:hover::before { opacity: 1; }
+
+    .menu-card:nth-child(1) { --card-accent: var(--accent); }
+    .menu-card:nth-child(2) { --card-accent: var(--teal); }
+    .menu-card:nth-child(3) { --card-accent: var(--gold); }
+    .menu-card:nth-child(4) { --card-accent: #7c6bff; }
+
+    .icon-wrap {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .menu-card:nth-child(1) .icon-wrap { background: var(--accent-dim); }
+    .menu-card:nth-child(2) .icon-wrap { background: var(--teal-dim); }
+    .menu-card:nth-child(3) .icon-wrap { background: var(--gold-dim); }
+    .menu-card:nth-child(4) .icon-wrap { background: rgba(124,107,255,0.12); }
+
+    .menu-card i {
+      font-size: 1.4rem;
+    }
+    .menu-card:nth-child(1) i { color: var(--accent); }
+    .menu-card:nth-child(2) i { color: var(--teal); }
+    .menu-card:nth-child(3) i { color: var(--gold); }
+    .menu-card:nth-child(4) i { color: #7c6bff; }
+
+    .menu-card span {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+
+    /* ============================================================
+       APP INTERFACE (EDITOR / VIEWER)
+       ============================================================ */
+    #app-interface {
+      display: none;
+      height: 100%; width: 100%;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      z-index: 1002;
+    }
+    header h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      flex: 1;
+      letter-spacing: -0.01em;
+    }
+    .back-btn {
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--text-secondary);
+      transition: color .2s;
+      padding: 4px;
+    }
+    .back-btn:hover { color: var(--accent); }
+
+    .header-action-btn {
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-family: 'Inter', sans-serif;
+      transition: filter .2s;
+      letter-spacing: 0.02em;
+    }
+    .header-action-btn:hover { filter: brightness(1.15); }
+    #save-draw-btn { background: var(--teal); }
+    #delete-multi-btn { background: var(--accent); }
+    #delete-multi-btn.active { background: #c0392b; border: 2px solid rgba(233,69,96,0.4); }
+
+    /* ============================================================
+       MAP
+       ============================================================ */
+    #map-container {
+      flex-grow: 1;
+      position: relative;
+      width: 100%;
+      min-height: 0;
+      display: flex;
+    }
+    #map { width: 100%; height: 100%; }
+
+    /* Leaflet dark tile filter */
+    .leaflet-tile-pane { filter: brightness(0.85) saturate(0.7); }
+
+    /* FABs */
+    .fab-container {
+      position: absolute;
+      bottom: 24px; right: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 2000;
+      pointer-events: none;
+    }
+    .fab {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      pointer-events: auto;
+    }
+    .fab:active { transform: scale(0.92); }
+    .fab-create {
+      background: var(--accent);
+      color: #fff;
+    }
+    .fab-create:hover { box-shadow: 0 4px 20px var(--accent-glow); }
+    .fab-geo {
+      background: var(--bg-raised);
+      color: var(--teal);
+      border: 1px solid var(--border);
+    }
+    .fab-geo:hover { border-color: var(--teal); }
+
+    /* ============================================================
+       RESIZABLE BOTTOM PANEL
+       ============================================================ */
+    #resizable-panel {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 40vh;
+      min-height: 60px;
+      max-height: 85vh;
+      z-index: 1003;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    #resize-handle {
+      width: 100%;
+      height: 18px;
+      background: var(--bg-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: row-resize;
+      touch-action: none;
+    }
+    #resize-handle::after {
+      content: '';
+      width: 36px; height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    #selection-status {
+      background: var(--bg-surface);
+      color: var(--accent);
+      text-align: left;
+      padding: 6px 16px 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .status-company-sub {
+      display: block;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    #bottom-panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px;
+      background: var(--bg-surface);
+    }
+    /* Scrollbar */
+    #bottom-panel-content::-webkit-scrollbar { width: 5px; }
+    #bottom-panel-content::-webkit-scrollbar-track { background: transparent; }
+    #bottom-panel-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ============================================================
+       CATEGORY & LINE LIST
+       ============================================================ */
+    .base-btn {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      padding: 11px 13px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 500;
+      color: var(--text-primary);
+      font-size: 0.82rem;
+      transition: background .15s, border-color .15s;
+    }
+    .base-btn:hover { background: var(--bg-hover); }
+
+    .category-btn { font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.72rem; color: var(--text-secondary); }
+    .category-btn i { color: var(--text-muted); transition: transform .2s; }
+    .category-btn.active { background: var(--bg-hover); border-color: var(--border); }
+    .category-content { display: none; margin-bottom: 6px; }
+    .category-content.show { display: block; }
+
+    .line-item-btn {
+      margin-left: 16px;
+      width: calc(100% - 16px);
+      border-left: 3px solid var(--border);
+      background: var(--bg-surface);
+      flex-wrap: wrap;
+    }
+    .line-item-btn:hover { background: var(--bg-raised); }
+    .line-item-btn.selected {
+      border-left-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .line-item-btn.line-true {
+      font-weight: 700 !important;
+      color: var(--teal);
+      border-left-color: var(--teal);
+      background: var(--teal-dim);
+    }
+    .line-item-btn.line-true.selected { background: rgba(0,201,167,0.2); }
+
+    .company-tag {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-left: 7px;
+      font-weight: 400;
+    }
+    .line-name-wrapper { display: flex; align-items: baseline; flex-wrap: wrap; }
+
+    .edit-actions { display: flex; gap: 10px; opacity: 0.45; margin-left: auto; }
+    .edit-actions i { color: var(--text-secondary); cursor: pointer; transition: color .15s, opacity .15s; }
+    .edit-actions i:hover { opacity: 1; color: var(--accent); }
+
+    .ramal-list { margin-left: 28px; padding-left: 8px; margin-bottom: 8px; border-left: 1px solid var(--border); }
+    .ramal-item {
+      padding: 7px 9px;
+      margin-bottom: 3px;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background .15s, color .15s;
+    }
+    .ramal-item:hover { background: var(--bg-raised); color: var(--text-primary); }
+    .ramal-item.active { color: var(--accent); font-weight: 600; background: var(--accent-dim); }
+    .ramal-item .fa-route { color: var(--accent); font-size: 0.7rem; margin-right: 5px; }
+
+    /* ============================================================
+       MODALS
+       ============================================================ */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(3px);
+      z-index: 3000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: 24px;
+      border-radius: 14px;
+      width: 88%;
+      max-width: 360px;
+      box-shadow: var(--shadow);
+    }
+    .modal-box h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      margin-bottom: 5px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 9px 11px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      transition: border-color .2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .form-group select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a8a9a'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+    .form-group select option { background: var(--bg-raised); color: var(--text-primary); }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+    }
+    .checkbox-group input { width: auto; margin: 0; accent-color: var(--accent); }
+
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+    .btn { padding: 9px 18px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; font-size: 0.78rem; font-family: 'Inter', sans-serif; transition: filter .2s; }
+    .btn:hover { filter: brightness(1.12); }
+    .btn-cancel { background: var(--bg-raised); color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-confirm { background: var(--accent); color: #fff; }
+
+    /* Export list */
+    .export-list-container {
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      margin-bottom: 14px;
+      background: var(--bg-raised);
+    }
+    .export-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .export-item:last-child { border-bottom: none; }
+    .export-item label { font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; width: 100%; }
+    .export-item input { width: auto; accent-color: var(--accent); }
+
+    /* File btn */
+    .file-btn-group { display: flex; gap: 8px; margin-bottom: 12px; }
+    .file-btn {
+      flex: 1; padding: 10px; border: 1px dashed var(--border);
+      background: var(--bg-raised); text-align: center; cursor: pointer;
+      border-radius: var(--radius-sm); color: var(--text-secondary);
+      font-size: 0.78rem; transition: border-color .2s, color .2s;
+    }
+    .file-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ============================================================
+       MAP MARKERS & BUS ICON
+       ============================================================ */
+    .custom-p-icon {
+      background-color: var(--stop-color);
+      color: #1a1a24;
+      border: none;
+      border-radius: 0;
+      font-weight: 800;
+      font-family: 'Syne', sans-serif;
+      text-align: center;
+      line-height: 26px;
+      font-size: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .bus-marker-container {
+      position: relative; width: 100%; height: 100%;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .bus-marker-icon {
+      font-size: 22px;
+      color: var(--bus-color);
+      text-shadow: 0 0 6px rgba(0,201,167,0.5);
+      z-index: 2;
+    }
+    .bus-orbit-arrow {
+      position: absolute; width: 36px; height: 36px;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      pointer-events: none; z-index: 1;
+    }
+    .bus-orbit-arrow::after {
+      content: '';
+      position: absolute; top: -4px; left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 7px solid var(--teal);
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: var(--bg-raised) !important;
+      color: var(--text-primary) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px !important;
+      box-shadow: var(--shadow-sm) !important;
+    }
+    .leaflet-popup-tip { background: var(--bg-raised) !important; }
+    .marker-read-only { font-weight: 700; font-size: 0.9em; color: var(--teal); }
+
+    /* Leaflet draw toolbar dark fix */
+    .leaflet-draw-toolbar a {
+      background-color: var(--bg-raised) !important;
+      border-bottom-color: var(--border) !important;
+      color: var(--text-primary) !important;
+    }
+    .leaflet-draw-toolbar a:hover { background-color: var(--bg-hover) !important; }
+    .leaflet-control-zoom a {
+      background-color: var(--bg-raised) !important;
+      color: var(--text-primary) !important;
+      border-color: var(--border) !important;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== LANGUAGE SWITCHER ========== -->
+<div id="lang-switcher">
+  <button class="lang-btn active" onclick="setLang('es')">ES</button>
+  <button class="lang-btn" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" onclick="setLang('pt')">PT</button>
+  <button class="lang-btn" onclick="setLang('ru')">RU</button>
+  <button class="lang-btn" onclick="setLang('de')">DE</button>
+</div>
+
+<!-- ========== HOME ========== -->
+<div id="home-screen">
+  <div class="home-hero">
+    <div class="home-logo-ring">
+      <i class="fas fa-bus"></i>
+    </div>
+    <h1>Bus <span>Creator</span></h1>
+    <p data-i18n="home.subtitle"></p>
+  </div>
+
+  <div class="menu-grid">
+    <div class="menu-card" onclick="openApp('editor')">
+      <div class="icon-wrap"><i class="fas fa-pen-tool"></i></div>
+      <span data-i18n="home.editor"></span>
+    </div>
+    <div class="menu-card" onclick="openApp('viewer')">
+      <div class="icon-wrap"><i class="fas fa-map-marked-alt"></i></div>
+      <span data-i18n="home.viewer"></span>
+    </div>
+    <div class="menu-card" onclick="openExportModal()">
+      <div class="icon-wrap"><i class="fas fa-file-export"></i></div>
+      <span data-i18n="home.export"></span>
+    </div>
+    <div class="menu-card" onclick="openImportModal()">
+      <div class="icon-wrap"><i class="fas fa-file-import"></i></div>
+      <span data-i18n="home.import"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== APP INTERFACE ========== -->
+<div id="app-interface">
+  <header>
+    <i class="fas fa-arrow-left back-btn" onclick="goHome()"></i>
+    <h2 id="app-title"></h2>
+    <button id="delete-multi-btn" class="header-action-btn" onclick="toggleMultiDelete()">
+      <i class="fas fa-trash-alt"></i> <span data-i18n="app.delete"></span> (<span id="delete-count">0</span>)
+    </button>
+    <button id="save-draw-btn" class="header-action-btn" onclick="saveCurrentRamalDraw()">
+      <i class="fas fa-save"></i> <span data-i18n="app.save"></span>
+    </button>
+  </header>
+
+  <div id="map-container">
+    <div id="map"></div>
+    <div class="fab-container">
+      <div class="fab fab-geo" onclick="locateUser()" title="">
+        <i class="fas fa-crosshairs"></i>
+      </div>
+      <div class="fab fab-create" id="fabCreate" onclick="showCreateOptions()" style="display:none">
+        <i class="fas fa-plus"></i>
+      </div>
+    </div>
+  </div>
+
+  <div id="resizable-panel">
+    <div id="resize-handle"></div>
+    <div id="selection-status" data-i18n="app.selectLine"></div>
+    <div id="bottom-panel-content">
+      <div id="categories-container"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODALS ========== -->
+<!-- Create Line -->
+<div class="modal-overlay" id="modalCreateLine">
+  <div class="modal-box">
+    <h3 data-i18n="modal.newLine"></h3>
+    <div class="form-group">
+      <label data-i18n="modal.lineName"></label>
+      <input type="text" id="newLineName" data-i18n-placeholder="modal.lineNamePh">
+    </div>
+    <div class="form-group">
+      <label data-i18n="modal.company"></label>
+      <input type="text" id="newLineCompany" data-i18n-placeholder="modal.companyPh">
+    </div>
+    <div class="form-group">
+      <label data-i18n="modal.serviceType"></label>
+      <select id="newLineCategory">
+        <option value="Urbano" data-i18n="cat.urban"></option>
+        <option value="InterUrbano" data-i18n="cat.interurban"></option>
+        <option value="Media Distancia" data-i18n="cat.medium"></option>
+        <option value="Larga Distancia" data-i18n="cat.long"></option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="checkbox-group">
+        <input type="checkbox" id="newLineOfficial">
+        <span data-i18n="modal.realLine"></span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModals()" data-i18n="modal.cancel"></button>
+      <button class="btn btn-confirm" onclick="confirmCreateLine()" data-i18n="modal.create"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Branch -->
+<div class="modal-overlay" id="modalCreateRamal">
+  <div class="modal-box">
+    <h3 data-i18n="modal.newBranch"></h3>
+    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;"><span data-i18n="modal.addingTo"></span> <span id="targetLineName" style="font-weight:700; color:var(--text-primary)"></span></p>
+    <div class="form-group">
+      <label data-i18n="modal.branchName"></label>
+      <input type="text" id="newRamalName" data-i18n-placeholder="modal.branchNamePh">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModals()" data-i18n="modal.cancel"></button>
+      <button class="btn btn-confirm" onclick="confirmCreateRamal()" data-i18n="modal.create"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Copy Branch -->
+<div class="modal-overlay" id="modalCopyRamal">
+  <div class="modal-box">
+    <h3 data-i18n="modal.copyBranch"></h3>
+    <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:12px;"><span data-i18n="modal.sourceBranch"></span>: <b id="copySourceRamal" style="color:var(--text-primary)"></b></p>
+    <input type="hidden" id="copySourceLine">
+    <input type="hidden" id="copySourceCat">
+    <div class="form-group">
+      <label data-i18n="modal.targetLine"></label>
+      <select id="copyTargetLineSelect"></select>
+    </div>
+    <div class="form-group">
+      <label data-i18n="modal.newNameOpt"></label>
+      <input type="text" id="copyNewName" data-i18n-placeholder="modal.newNameOptPh">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModals()" data-i18n="modal.cancel"></button>
+      <button class="btn btn-confirm" onclick="confirmCopyRamal()" data-i18n="modal.copy"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename -->
+<div class="modal-overlay" id="modalRename">
+  <div class="modal-box">
+    <h3 data-i18n="modal.editRename"></h3>
+    <input type="hidden" id="renameType">
+    <input type="hidden" id="renameOldName">
+    <input type="hidden" id="renameCat">
+    <input type="hidden" id="renameParentLine">
+    <div class="form-group">
+      <label data-i18n="modal.name"></label>
+      <input type="text" id="renameNewName">
+    </div>
+    <div id="renameLineFields" style="display:none">
+      <div class="form-group">
+        <label data-i18n="modal.company"></label>
+        <input type="text" id="renameNewCompany">
+      </div>
+      <div class="form-group">
+        <label data-i18n="modal.moveService"></label>
+        <select id="renameNewCategory">
+          <option value="Urbano" data-i18n="cat.urban"></option>
+          <option value="InterUrbano" data-i18n="cat.interurban"></option>
+          <option value="Media Distancia" data-i18n="cat.medium"></option>
+          <option value="Larga Distancia" data-i18n="cat.long"></option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="checkbox-group">
+          <input type="checkbox" id="renameNewOfficial">
+          <span data-i18n="modal.realLine"></span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModals()" data-i18n="modal.cancel"></button>
+      <button class="btn btn-confirm" onclick="confirmRename()" data-i18n="modal.save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Export -->
+<div class="modal-overlay" id="modalExport">
+  <div class="modal-box">
+    <h3 data-i18n="modal.exportLines"></h3>
+    <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;" data-i18n="modal.exportHint"></p>
+    <div class="export-list-container" id="exportChecklist"></div>
+    <div class="form-group">
+      <button class="btn btn-confirm" style="width:100%" onclick="downloadJSON()">
+        <i class="fas fa-download"></i> <span data-i18n="modal.downloadJSON"></span>
+      </button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModals()" data-i18n="modal.close"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Import -->
+<div class="modal-overlay" id="modalImport">
+  <div class="modal-box">
+    <h3 data-i18n="modal.importLines"></h3>
+    <div class="file-btn-group">
+      <label class="file-btn">
+        <i class="fas fa-folder-open"></i> <span data-i18n="modal.chooseFile"></span>
+        <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="readJSONFile(this)">
+      </label>
+    </div>
+    <div class="form-group">
+      <label data-i18n="modal.pasteJSON"></label>
+      <textarea id="importInput" rows="4" placeholder="{...}"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModals()" data-i18n="modal.cancel"></button>
+      <button class="btn btn-confirm" onclick="confirmImport()" data-i18n="modal.import"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script>
+// ============================================================
+// i18n — TRANSLATIONS
+// ============================================================
+const i18nData = {
+  es: {
+    "home.subtitle": "Crea y visualiza líneas de transporte en el mapa",
+    "home.editor": "Editor de\nLíneas",
+    "home.viewer": "Mapa de\nLíneas",
+    "home.export": "Exportar\nLíneas",
+    "home.import": "Importar\nLíneas",
+    "app.editor": "Editor de líneas",
+    "app.viewer": "Mapa de líneas",
+    "app.selectLine": "Selecciona una línea",
+    "app.save": "Guardar",
+    "app.delete": "Borrar",
+    "app.noLines": "Sin líneas disponibles",
+    "app.noBranches": "Sin ramales creados.",
+    "app.addBranch": "+ Agregar Ramal",
+    "cat.urban": "Urbano",
+    "cat.interurban": "InterUrbano",
+    "cat.medium": "Media Distancia",
+    "cat.long": "Larga Distancia",
+    "modal.newLine": "Nueva Línea",
+    "modal.lineName": "Nombre de la Línea",
+    "modal.lineNamePh": "Ej: Línea 102",
+    "modal.company": "Empresa",
+    "modal.companyPh": "Ej: El Corcel S.A.",
+    "modal.serviceType": "Tipo de Servicio",
+    "modal.realLine": "Línea Verdadera",
+    "modal.cancel": "Cancelar",
+    "modal.create": "Crear",
+    "modal.save": "Guardar",
+    "modal.close": "Cerrar",
+    "modal.newBranch": "Nuevo Ramal",
+    "modal.addingTo": "Agregando a:",
+    "modal.branchName": "Nombre del Ramal",
+    "modal.branchNamePh": "Ej: Ramal San Pablo",
+    "modal.copyBranch": "Copiar Ramal",
+    "modal.sourceBranch": "Ramal origen",
+    "modal.targetLine": "Línea de Destino",
+    "modal.newNameOpt": "Nuevo Nombre (Opcional)",
+    "modal.newNameOptPh": "Dejar vacío para mantener nombre",
+    "modal.copy": "Copiar",
+    "modal.editRename": "Editar / Renombrar",
+    "modal.name": "Nombre",
+    "modal.moveService": "Tipo de Servicio (Mover línea)",
+    "modal.exportLines": "Exportar Líneas",
+    "modal.exportHint": "Selecciona las líneas a exportar:",
+    "modal.downloadJSON": "Descargar JSON",
+    "modal.importLines": "Importar Líneas",
+    "modal.chooseFile": "Elegir Archivo JSON",
+    "modal.pasteJSON": "O pegar código JSON:",
+    "modal.import": "Importar",
+    "modal.stop": "Parada",
+    "alert.enterName": "Ingresa un nombre de línea",
+    "alert.lineExists": "Ya existe esa línea en esa categoría",
+    "alert.branchExists": "Ya existe el ramal",
+    "alert.invalidName": "Nombre inválido",
+    "alert.lineExistsCat": "Ya existe una línea con ese nombre en la categoría seleccionada.",
+    "alert.branchExistsCopy": "Ya existe un ramal con ese nombre.",
+    "alert.branchCopied": "Ramal copiado exitosamente.",
+    "alert.deleteLine": '¿Eliminar línea "{name}" y todos sus ramales?',
+    "alert.deleteBranch": '¿Eliminar ramal "{name}"?',
+    "alert.saved": "Recorrido y paradas guardados.",
+    "alert.emptyContent": "El contenido está vacío",
+    "alert.selectExport": "Selecciona al menos una línea para exportar.",
+    "alert.detectLines": "Se detectaron {n} líneas en el archivo. ¿Importar?",
+    "alert.lineOverwrite": 'La línea "{name}" ya existe. ¿Sobreescribir?',
+    "alert.importedOk": "Se importaron {n} líneas exitosamente.",
+    "alert.importError": "Error al importar: ",
+    "alert.deleteConfirm": "¿Borrar {n} elementos seleccionados?",
+    "alert.noGeo": "Navegador no soporta geolocalización.",
+    "alert.geoFail": "No se pudo obtener ubicación.",
+    "popup.youAreHere": "Estás aquí",
+    "export.noLines": "No hay líneas para exportar."
+  },
+  en: {
+    "home.subtitle": "Create and visualize bus routes on the map",
+    "home.editor": "Line\nEditor",
+    "home.viewer": "Line\nMap",
+    "home.export": "Export\nLines",
+    "home.import": "Import\nLines",
+    "app.editor": "Line editor",
+    "app.viewer": "Line map",
+    "app.selectLine": "Select a line",
+    "app.save": "Save",
+    "app.delete": "Delete",
+    "app.noLines": "No lines available",
+    "app.noBranches": "No branches created.",
+    "app.addBranch": "+ Add Branch",
+    "cat.urban": "Urban",
+    "cat.interurban": "InterUrban",
+    "cat.medium": "Medium Distance",
+    "cat.long": "Long Distance",
+    "modal.newLine": "New Line",
+    "modal.lineName": "Line Name",
+    "modal.lineNamePh": "e.g. Line 102",
+    "modal.company": "Company",
+    "modal.companyPh": "e.g. El Corcel S.A.",
+    "modal.serviceType": "Service Type",
+    "modal.realLine": "Real Line",
+    "modal.cancel": "Cancel",
+    "modal.create": "Create",
+    "modal.save": "Save",
+    "modal.close": "Close",
+    "modal.newBranch": "New Branch",
+    "modal.addingTo": "Adding to:",
+    "modal.branchName": "Branch Name",
+    "modal.branchNamePh": "e.g. San Pablo Branch",
+    "modal.copyBranch": "Copy Branch",
+    "modal.sourceBranch": "Source branch",
+    "modal.targetLine": "Target Line",
+    "modal.newNameOpt": "New Name (Optional)",
+    "modal.newNameOptPh": "Leave empty to keep name",
+    "modal.copy": "Copy",
+    "modal.editRename": "Edit / Rename",
+    "modal.name": "Name",
+    "modal.moveService": "Service Type (Move line)",
+    "modal.exportLines": "Export Lines",
+    "modal.exportHint": "Select the lines to export:",
+    "modal.downloadJSON": "Download JSON",
+    "modal.importLines": "Import Lines",
+    "modal.chooseFile": "Choose JSON File",
+    "modal.pasteJSON": "Or paste JSON code:",
+    "modal.import": "Import",
+    "modal.stop": "Stop",
+    "alert.enterName": "Enter a line name",
+    "alert.lineExists": "That line already exists in this category",
+    "alert.branchExists": "Branch already exists",
+    "alert.invalidName": "Invalid name",
+    "alert.lineExistsCat": "A line with that name already exists in the selected category.",
+    "alert.branchExistsCopy": "A branch with that name already exists.",
+    "alert.branchCopied": "Branch copied successfully.",
+    "alert.deleteLine": 'Delete line "{name}" and all its branches?',
+    "alert.deleteBranch": 'Delete branch "{name}"?',
+    "alert.saved": "Route and stops saved.",
+    "alert.emptyContent": "Content is empty",
+    "alert.selectExport": "Select at least one line to export.",
+    "alert.detectLines": "{n} lines detected in the file. Import?",
+    "alert.lineOverwrite": 'Line "{name}" already exists. Overwrite?',
+    "alert.importedOk": "{n} lines imported successfully.",
+    "alert.importError": "Import error: ",
+    "alert.deleteConfirm": "Delete {n} selected items?",
+    "alert.noGeo": "Geolocation is not supported by your browser.",
+    "alert.geoFail": "Could not get location.",
+    "popup.youAreHere": "You are here",
+    "export.noLines": "No lines to export."
+  },
+  pt: {
+    "home.subtitle": "Crie e visualize rotas de ônibus no mapa",
+    "home.editor": "Editor de\nLinhas",
+    "home.viewer": "Mapa de\nLinhas",
+    "home.export": "Exportar\nLinhas",
+    "home.import": "Importar\nLinhas",
+    "app.editor": "Editor de linhas",
+    "app.viewer": "Mapa de linhas",
+    "app.selectLine": "Selecione uma linha",
+    "app.save": "Salvar",
+    "app.delete": "Deletar",
+    "app.noLines": "Sem linhas disponíveis",
+    "app.noBranches": "Sem ramais criados.",
+    "app.addBranch": "+ Adicionar Ramal",
+    "cat.urban": "Urbano",
+    "cat.interurban": "InterUrbano",
+    "cat.medium": "Média Distância",
+    "cat.long": "Longa Distância",
+    "modal.newLine": "Nova Linha",
+    "modal.lineName": "Nome da Linha",
+    "modal.lineNamePh": "Ex: Linha 102",
+    "modal.company": "Empresa",
+    "modal.companyPh": "Ex: El Corcel S.A.",
+    "modal.serviceType": "Tipo de Serviço",
+    "modal.realLine": "Linha Real",
+    "modal.cancel": "Cancelar",
+    "modal.create": "Criar",
+    "modal.save": "Salvar",
+    "modal.close": "Fechar",
+    "modal.newBranch": "Novo Ramal",
+    "modal.addingTo": "Adicionando a:",
+    "modal.branchName": "Nome do Ramal",
+    "modal.branchNamePh": "Ex: Ramal São Paulo",
+    "modal.copyBranch": "Copiar Ramal",
+    "modal.sourceBranch": "Ramal de origem",
+    "modal.targetLine": "Linha de Destino",
+    "modal.newNameOpt": "Novo Nome (Opcional)",
+    "modal.newNameOptPh": "Deixe vazio para manter nome",
+    "modal.copy": "Copiar",
+    "modal.editRename": "Editar / Renombrar",
+    "modal.name": "Nome",
+    "modal.moveService": "Tipo de Serviço (Mover linha)",
+    "modal.exportLines": "Exportar Linhas",
+    "modal.exportHint": "Selecione as linhas para exportar:",
+    "modal.downloadJSON": "Baixar JSON",
+    "modal.importLines": "Importar Linhas",
+    "modal.chooseFile": "Escolher Arquivo JSON",
+    "modal.pasteJSON": "Ou cole código JSON:",
+    "modal.import": "Importar",
+    "modal.stop": "Parada",
+    "alert.enterName": "Insira um nome de linha",
+    "alert.lineExists": "Essa linha já existe nessa categoria",
+    "alert.branchExists": "O ramal já existe",
+    "alert.invalidName": "Nome inválido",
+    "alert.lineExistsCat": "Já existe uma linha com esse nome na categoria selecionada.",
+    "alert.branchExistsCopy": "Já existe um ramal com esse nome.",
+    "alert.branchCopied": "Ramal copiado com sucesso.",
+    "alert.deleteLine": 'Deletar linha "{name}" e todos os ramais?',
+    "alert.deleteBranch": 'Deletar ramal "{name}"?',
+    "alert.saved": "Percurso e paradas salvos.",
+    "alert.emptyContent": "O conteúdo está vazio",
+    "alert.selectExport": "Selecione pelo menos uma linha para exportar.",
+    "alert.detectLines": "{n} linhas detectadas no arquivo. Importar?",
+    "alert.lineOverwrite": 'A linha "{name}" já existe. Sobrescrever?',
+    "alert.importedOk": "{n} linhas importadas com sucesso.",
+    "alert.importError": "Erro ao importar: ",
+    "alert.deleteConfirm": "Deletar {n} itens selecionados?",
+    "alert.noGeo": "Geolocalização não é suportada pelo seu navegador.",
+    "alert.geoFail": "Não foi possível obter a localização.",
+    "popup.youAreHere": "Você está aqui",
+    "export.noLines": "Não há linhas para exportar."
+  },
+  ru: {
+    "home.subtitle": "Создайте и визуализируйте маршруты автобусов на карте",
+    "home.editor": "Редактор\nлиний",
+    "home.viewer": "Карта\nлиний",
+    "home.export": "Экспорт\nлиний",
+    "home.import": "Импорт\nлиний",
+    "app.editor": "Редактор линий",
+    "app.viewer": "Карта линий",
+    "app.selectLine": "Выберите линию",
+    "app.save": "Сохранить",
+    "app.delete": "Удалить",
+    "app.noLines": "Линий пока нет",
+    "app.noBranches": "Веток пока нет.",
+    "app.addBranch": "+ Добавить ветку",
+    "cat.urban": "Городской",
+    "cat.interurban": "Межгородской",
+    "cat.medium": "Средняя дистанция",
+    "cat.long": "Длинная дистанция",
+    "modal.newLine": "Новая линия",
+    "modal.lineName": "Название линии",
+    "modal.lineNamePh": "Например: Линия 102",
+    "modal.company": "Компания",
+    "modal.companyPh": "Например: El Corcel S.A.",
+    "modal.serviceType": "Тип обслуживания",
+    "modal.realLine": "Реальная линия",
+    "modal.cancel": "Отмена",
+    "modal.create": "Создать",
+    "modal.save": "Сохранить",
+    "modal.close": "Закрыть",
+    "modal.newBranch": "Новая ветка",
+    "modal.addingTo": "Добавляем к:",
+    "modal.branchName": "Название ветки",
+    "modal.branchNamePh": "Например: Ветка Сан-Пабло",
+    "modal.copyBranch": "Копировать ветку",
+    "modal.sourceBranch": "Исходная ветка",
+    "modal.targetLine": "Целевая линия",
+    "modal.newNameOpt": "Новое имя (необязательно)",
+    "modal.newNameOptPh": "Оставить пустым для сохранения имени",
+    "modal.copy": "Копировать",
+    "modal.editRename": "Редактировать / Переименовать",
+    "modal.name": "Имя",
+    "modal.moveService": "Тип обслуживания (Переместить линию)",
+    "modal.exportLines": "Экспорт линий",
+    "modal.exportHint": "Выберите линии для экспорта:",
+    "modal.downloadJSON": "Загрузить JSON",
+    "modal.importLines": "Импорт линий",
+    "modal.chooseFile": "Выбрать файл JSON",
+    "modal.pasteJSON": "Или вставить код JSON:",
+    "modal.import": "Импортировать",
+    "modal.stop": "Остановка",
+    "alert.enterName": "Введите название линии",
+    "alert.lineExists": "Такая линия уже существует в этой категории",
+    "alert.branchExists": "Ветка уже существует",
+    "alert.invalidName": "Недопустимое имя",
+    "alert.lineExistsCat": "Линия с таким именем уже существует в выбранной категории.",
+    "alert.branchExistsCopy": "Ветка с таким именем уже существует.",
+    "alert.branchCopied": "Ветка скопирована успешно.",
+    "alert.deleteLine": 'Удалить линию "{name}" и все её ветки?',
+    "alert.deleteBranch": 'Удалить ветку "{name}"?',
+    "alert.saved": "Маршрут и остановки сохранены.",
+    "alert.emptyContent": "Содержимое пустое",
+    "alert.selectExport": "Выберите хотя бы одну линию для экспорта.",
+    "alert.detectLines": "В файле обнаружено {n} линий. Импортировать?",
+    "alert.lineOverwrite": 'Линия "{name}" уже существует. Перезаписать?',
+    "alert.importedOk": "{n} линий импортировано успешно.",
+    "alert.importError": "Ошибка импорта: ",
+    "alert.deleteConfirm": "Удалить {n} выбранных элемента?",
+    "alert.noGeo": "Геолокация не поддерживается вашим браузером.",
+    "alert.geoFail": "Не удалось получить местоположение.",
+    "popup.youAreHere": "Вы здесь",
+    "export.noLines": "Нет линий для экспорта."
+  },
+  de: {
+    "home.subtitle": "Erstelle und visualisiere Busrouten auf der Karte",
+    "home.editor": "Linien-\nRedakteur",
+    "home.viewer": "Linien-\nKarte",
+    "home.export": "Linien\nexportieren",
+    "home.import": "Linien\nimportieren",
+    "app.editor": "Linien-Redakteur",
+    "app.viewer": "Linien-Karte",
+    "app.selectLine": "Wähle eine Linie aus",
+    "app.save": "Speichern",
+    "app.delete": "Löschen",
+    "app.noLines": "Keine Linien verfügbar",
+    "app.noBranches": "Keine Zweige erstellt.",
+    "app.addBranch": "+ Zweig hinzufügen",
+    "cat.urban": "Städtisch",
+    "cat.interurban": "Städteübergreifend",
+    "cat.medium": "Mittlere Entfernung",
+    "cat.long": "Lange Entfernung",
+    "modal.newLine": "Neue Linie",
+    "modal.lineName": "Name der Linie",
+    "modal.lineNamePh": "Bsp.: Linie 102",
+    "modal.company": "Unternehmen",
+    "modal.companyPh": "Bsp.: El Corcel S.A.",
+    "modal.serviceType": "Serviceart",
+    "modal.realLine": "Echte Linie",
+    "modal.cancel": "Abbrechen",
+    "modal.create": "Erstellen",
+    "modal.save": "Speichern",
+    "modal.close": "Schließen",
+    "modal.newBranch": "Neuer Zweig",
+    "modal.addingTo": "Wird hinzugefügt zu:",
+    "modal.branchName": "Name des Zweigs",
+    "modal.branchNamePh": "Bsp.: Zweig San Pablo",
+    "modal.copyBranch": "Zweig kopieren",
+    "modal.sourceBranch": "Quell-Zweig",
+    "modal.targetLine": "Ziel-Linie",
+    "modal.newNameOpt": "Neuer Name (Optional)",
+    "modal.newNameOptPh": "Leer lassen um Name zu behalten",
+    "modal.copy": "Kopieren",
+    "modal.editRename": "Bearbeiten / Umbenennen",
+    "modal.name": "Name",
+    "modal.moveService": "Serviceart (Linie verschieben)",
+    "modal.exportLines": "Linien exportieren",
+    "modal.exportHint": "Wähle die zu exportierenden Linien aus:",
+    "modal.downloadJSON": "JSON herunterladen",
+    "modal.importLines": "Linien importieren",
+    "modal.chooseFile": "JSON-Datei wählen",
+    "modal.pasteJSON": "Oder JSON-Code einfügen:",
+    "modal.import": "Importieren",
+    "modal.stop": "Haltestelle",
+    "alert.enterName": "Bitte einen Liniennamen eingeben",
+    "alert.lineExists": "Diese Linie existiert bereits in dieser Kategorie",
+    "alert.branchExists": "Der Zweig existiert bereits",
+    "alert.invalidName": "Ungueltiger Name",
+    "alert.lineExistsCat": "Es existiert bereits eine Linie mit diesem Namen in der gewaehlten Kategorie.",
+    "alert.branchExistsCopy": "Es existiert bereits ein Zweig mit diesem Namen.",
+    "alert.branchCopied": "Zweig erfolgreich kopiert.",
+    "alert.deleteLine": 'Linie "{name}" und alle Zweige löschen?',
+    "alert.deleteBranch": 'Zweig "{name}" löschen?',
+    "alert.saved": "Strecke und Haltestellen gespeichert.",
+    "alert.emptyContent": "Der Inhalt ist leer",
+    "alert.selectExport": "Wähle mindestens eine Linie zum Exportieren aus.",
+    "alert.detectLines": "{n} Linien in der Datei erkannt. Importieren?",
+    "alert.lineOverwrite": 'Linie "{name}" existiert bereits. Überschreiben?',
+    "alert.importedOk": "{n} Linien erfolgreich importiert.",
+    "alert.importError": "Importfehler: ",
+    "alert.deleteConfirm": "{n} ausgewaehlte Elemente löschen?",
+    "alert.noGeo": "Geolokalisierung wird von Ihrem Browser nicht unterstützt.",
+    "alert.geoFail": "Standort konnte nicht ermittelt werden.",
+    "popup.youAreHere": "Sie sind hier",
+    "export.noLines": "Keine Linien zum Exportieren."
+  }
+};
+
+let currentLang = 'es';
+
+function t(key, params = {}) {
+  let str = (i18nData[currentLang] || i18nData.es)[key] || key;
+  for (const [k, v] of Object.entries(params)) {
+    str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+  }
+  return str;
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    // For menu cards, the text uses \n as <br>
+    if (el.tagName === 'SPAN' && el.closest('.menu-card')) {
+      el.innerHTML = val.replace(/\n/g, '<br>');
+    } else {
+      el.textContent = val;
+    }
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+  // Update header title if app is open
+  if (document.getElementById('app-interface').style.display === 'flex') {
+    document.getElementById('app-title').textContent = t(appMode === 'editor' ? 'app.editor' : 'app.viewer');
+  }
+  // Update selection status if it's the default
+  const status = document.getElementById('selection-status');
+  if (!selectedLine) status.textContent = t('app.selectLine');
+  // Re-render categories if visible
+  if (document.getElementById('app-interface').style.display === 'flex') renderCategories();
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.setAttribute('lang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase() === lang);
+  });
+  applyI18n();
+}
+
+// ============================================================
+// MIGRATION
+// ============================================================
+function migrateData(database) {
+  if (database["Tucumán"] && database["Tucumán"]["Rural"]) {
+    if (!database["Tucumán"]["Media Distancia"]) database["Tucumán"]["Media Distancia"] = {};
+    Object.assign(database["Tucumán"]["Media Distancia"], database["Tucumán"]["Rural"]);
+    delete database["Tucumán"]["Rural"];
+    localStorage.setItem('redbus_sim_db', JSON.stringify(database));
+  }
+  if (!database["Tucumán"]["Larga Distancia"]) database["Tucumán"]["Larga Distancia"] = {};
+  return database;
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let rawDB = JSON.parse(localStorage.getItem('redbus_sim_db')) || {
+  "Tucumán": { "Urbano": {}, "InterUrbano": {}, "Media Distancia": {}, "Larga Distancia": {} }
+};
+if (!rawDB["Tucumán"]) rawDB = { "Tucumán": { "Urbano": {}, "InterUrbano": {}, "Media Distancia": {}, "Larga Distancia": {} } };
+let db = migrateData(rawDB);
+
+const currentProvince = "Tucumán";
+const availableCategories = ["Urbano", "InterUrbano", "Media Distancia", "Larga Distancia"];
+let appMode = "viewer";
+let selectedLine = null;
+let editingRamal = null;
+let busMarker = null, busAnimationId = null, busArrowElement = null;
+let isDeleteMode = false, itemsToDelete = [];
+
+// ============================================================
+// MAP
+// ============================================================
+const map = L.map('map', { zoomControl: false }).setView([-26.8241, -65.2226], 13);
+// Usando CartoDB Dark Matter para un look profesional y nativo oscuro
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap &copy; CARTO',
+  maxZoom: 19
+}).addTo(map);
+
+map.createPane('busPane');
+map.getPane('busPane').style.zIndex = 650;
+map.getPane('busPane').style.pointerEvents = 'none';
+
+const drawnItems = new L.FeatureGroup().addTo(map);
+
+// ============================================================
+// RESIZABLE PANEL
+// ============================================================
+const resizablePanel = document.getElementById('resizable-panel');
+const resizeHandle = document.getElementById('resize-handle');
+let isDragging = false, startY, startHeight;
+
+resizeHandle.addEventListener('mousedown', e => {
+  isDragging = true; startY = e.clientY; startHeight = resizablePanel.clientHeight;
+  document.body.style.cursor = 'row-resize';
+});
+resizeHandle.addEventListener('touchstart', e => {
+  isDragging = true; startY = e.touches[0].clientY; startHeight = resizablePanel.clientHeight;
+});
+
+const onMove = (clientY) => {
+  if (!isDragging) return;
+  resizablePanel.style.height = `${startHeight + (startY - clientY)}px`;
+  map.invalidateSize();
+};
+const onEnd = () => { isDragging = false; document.body.style.cursor = 'default'; map.invalidateSize(); };
+
+window.addEventListener('mousemove', e => onMove(e.clientY));
+window.addEventListener('touchmove', e => onMove(e.touches[0].clientY), { passive: false });
+window.addEventListener('mouseup', onEnd);
+window.addEventListener('touchend', onEnd);
+
+// ============================================================
+// GEOLOCATION
+// ============================================================
+let userLocationMarker = null;
+function locateUser() {
+  if (!navigator.geolocation) { alert(t('alert.noGeo')); return; }
+  const userIcon = L.divIcon({
+    html: '<div style="width:14px;height:14px;background:#00c9a7;border:2px solid #fff;border-radius:50%;box-shadow:0 0 6px rgba(0,201,167,0.5);"></div>',
+    className: 'user-loc-icon', iconSize: [18, 18], iconAnchor: [9, 9]
+  });
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const ll = [pos.coords.latitude, pos.coords.longitude];
+      if (userLocationMarker) map.removeLayer(userLocationMarker);
+      userLocationMarker = L.marker(ll, { icon: userIcon }).addTo(map);
+      userLocationMarker.bindPopup(t('popup.youAreHere')).openPopup();
+      map.flyTo(ll, 15);
+    },
+    () => alert(t('alert.geoFail')),
+    { enableHighAccuracy: true }
+  );
+}
+
+// ============================================================
+// DRAW ICONS & CONTROL
+// ============================================================
+const pIcon = L.divIcon({
+  className: 'custom-p-icon', html: 'P',
+  iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -15]
+});
+
+const busIcon = L.divIcon({
+  className: 'bus-marker-wrapper',
+  html: '<div class="bus-marker-container"><div class="bus-orbit-arrow" id="activeBusArrow"></div><div class="bus-marker-icon"><i class="fas fa-bus"></i></div></div>',
+  iconSize: [40, 40], iconAnchor: [20, 20]
+});
+
+const drawControl = new L.Control.Draw({
+  position: 'topright',
+  draw: {
+    polyline: { shapeOptions: { color: '#e94560', weight: 4 } },
+    marker: { icon: pIcon },
+    polygon: false, rectangle: false, circle: false, circlemarker: false
+  },
+  edit: { featureGroup: drawnItems }
+});
+
+map.on(L.Draw.Event.CREATED, e => {
+  const layer = e.layer;
+  if (layer instanceof L.Marker) setupMarkerPopup(layer);
+  setupLayerEvents(layer);
+  drawnItems.addLayer(layer);
+  if (appMode === 'editor') showSaveButton();
+});
+map.on('draw:edited', () => showSaveButton());
+map.on('draw:deleted', () => showSaveButton());
+
+function setupLayerEvents(layer) {
+  layer.on('click', function (e) {
+    if (isDeleteMode) { toggleItemForDeletion(layer); L.DomEvent.stop(e); }
+  });
+}
+
+function setupMarkerPopup(layer) {
+  layer.feature = layer.feature || { type: "Feature", properties: {} };
+  layer.feature.properties.name = t('modal.stop');
+  const container = document.createElement('div');
+  container.innerHTML = `<div class="marker-read-only">${t('modal.stop')}</div>`;
+  layer.bindPopup(container);
+}
+
+function showSaveButton() {
+  document.getElementById('save-draw-btn').style.display = 'flex';
+}
+
+// ============================================================
+// MULTI DELETE
+// ============================================================
+function toggleMultiDelete() {
+  isDeleteMode = !isDeleteMode;
+  const btn = document.getElementById('delete-multi-btn');
+  if (isDeleteMode) {
+    btn.classList.add('active');
+    btn.innerHTML = `<i class="fas fa-check"></i> <span>${t('modal.save').replace('Guardar','')}</span> (<span id="delete-count">0</span>)`;
+    itemsToDelete = [];
+    map.closePopup();
+    if (drawControl._map) drawControl.remove();
+  } else {
+    if (itemsToDelete.length > 0) {
+      if (confirm(t('alert.deleteConfirm', { n: itemsToDelete.length }))) {
+        itemsToDelete.forEach(l => drawnItems.removeLayer(l));
+        showSaveButton();
+      } else {
+        itemsToDelete.forEach(l => l.setOpacity ? l.setOpacity(1) : l.setStyle({ opacity: 1 }));
+      }
+    }
+    btn.classList.remove('active');
+    btn.innerHTML = `<i class="fas fa-trash-alt"></i> ${t('app.delete')} (<span id="delete-count">0</span>)`;
+    itemsToDelete = [];
+    if (appMode === 'editor' && selectedLine) map.addControl(drawControl);
+  }
+}
+
+function toggleItemForDeletion(layer) {
+  const idx = itemsToDelete.indexOf(layer);
+  if (idx === -1) {
+    itemsToDelete.push(layer);
+    layer.setOpacity ? layer.setOpacity(0.35) : layer.setStyle({ opacity: 0.35 });
+  } else {
+    itemsToDelete.splice(idx, 1);
+    layer.setOpacity ? layer.setOpacity(1) : layer.setStyle({ opacity: 1 });
+  }
+  updateDeleteCount();
+}
+
+function updateDeleteCount() {
+  const s = document.getElementById('delete-count');
+  if (s) s.innerText = itemsToDelete.length;
+}
+
+// ============================================================
+// SAVE / NAVIGATE
+// ============================================================
+function saveCurrentRamalDraw() {
+  if (selectedLine && editingRamal) {
+    const geoJSON = drawnItems.toGeoJSON();
+    db[currentProvince][selectedLine.category][selectedLine.name][editingRamal] = geoJSON;
+    saveDB();
+    document.getElementById('save-draw-btn').style.display = 'none';
+    alert(t('alert.saved'));
+    stopBusAnimation();
+    startBusAnimation(geoJSON);
+  }
+}
+
+function goHome() {
+  stopBusAnimation();
+  document.getElementById('app-interface').style.display = 'none';
+  document.getElementById('home-screen').style.display = 'flex';
+  drawnItems.clearLayers();
+  if (userLocationMarker) map.removeLayer(userLocationMarker);
+  if (appMode === 'editor') {
+    if (drawControl._map) drawControl.remove();
+    document.getElementById('delete-multi-btn').style.display = 'none';
+  }
+  isDeleteMode = false;
+  selectedLine = null;
+  document.getElementById('resizable-panel').style.height = "40vh";
+}
+
+function openApp(mode) {
+  appMode = mode;
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('app-interface').style.display = 'flex';
+
+  document.getElementById('app-title').textContent = t(mode === 'editor' ? 'app.editor' : 'app.viewer');
+  document.getElementById('fabCreate').style.display = (mode === 'editor') ? 'flex' : 'none';
+  document.getElementById('delete-multi-btn').style.display = (mode === 'editor') ? 'flex' : 'none';
+  document.getElementById('save-draw-btn').style.display = 'none';
+  document.getElementById('selection-status').textContent = t('app.selectLine');
+
+  drawnItems.clearLayers();
+  selectedLine = null;
+  editingRamal = null;
+  renderCategories();
+  map.setView([-26.8241, -65.2226], 13);
+  map.invalidateSize();
+}
+
+// ============================================================
+// RENDER CATEGORIES & LINES
+// ============================================================
+function renderCategories() {
+  const container = document.getElementById('categories-container');
+  container.innerHTML = '';
+  const provData = db[currentProvince];
+
+  availableCategories.forEach(cat => {
+    const catBtn = document.createElement('div');
+    catBtn.className = 'base-btn category-btn';
+    catBtn.innerHTML = `<span>${t('cat.' + catKeyMap(cat))}</span> <i class="fas fa-chevron-down"></i>`;
+
+    const catContent = document.createElement('div');
+    catContent.className = 'category-content';
+
+    const lines = provData[cat] || {};
+    const lineNames = Object.keys(lines);
+
+    if (lineNames.length === 0) {
+      catContent.innerHTML = `<div style="padding:9px 18px; color:var(--text-muted); font-size:0.75rem; font-style:italic;">${t('app.noLines')}</div>`;
+    } else {
+      lineNames.forEach(lName => {
+        const lItem = document.createElement('div');
+        lItem.className = 'base-btn line-item-btn';
+
+        const lineData = lines[lName];
+        const info = lineData._info || {};
+        const company = info.company || "";
+        const isTrue = info.isReal === true;
+        if (isTrue) lItem.classList.add('line-true');
+
+        let actionsHtml = '';
+        if (appMode === 'editor') {
+          actionsHtml = `<div class="edit-actions" onclick="event.stopPropagation()">
+            <i class="fas fa-pencil-alt" onclick="openRenameModal('line','${lName}','${cat}')"></i>
+            <i class="fas fa-trash" onclick="deleteLine('${cat}','${lName}')"></i>
+          </div>`;
+        }
+
+        lItem.innerHTML = `<div class="line-name-wrapper">
+          <span>${lName}</span>
+          ${company ? `<span class="company-tag">${company}</span>` : ''}
+        </div>${actionsHtml}`;
+
+        const ramalContainer = document.createElement('div');
+        ramalContainer.className = 'ramal-list-container';
+        ramalContainer.id = `ramals-${cat}-${lName}`.replace(/\s/g, '');
+        ramalContainer.style.display = 'none';
+
+        lItem.onclick = () => {
+          const isOpen = ramalContainer.style.display === 'block';
+          document.querySelectorAll('.line-item-btn').forEach(b => b.classList.remove('selected'));
+          document.querySelectorAll('.ramal-list-container').forEach(c => c.style.display = 'none');
+
+          if (!isOpen) {
+            lItem.classList.add('selected');
+            ramalContainer.style.display = 'block';
+            selectedLine = { category: cat, name: lName, company };
+            let statusHtml = lName;
+            if (company) statusHtml += `<span class="status-company-sub">${company}</span>`;
+            document.getElementById('selection-status').innerHTML = statusHtml;
+            renderRamales(cat, lName, ramalContainer);
+          } else {
+            selectedLine = null;
+            document.getElementById('selection-status').textContent = t('app.selectLine');
+          }
+        };
+
+        catContent.appendChild(lItem);
+        catContent.appendChild(ramalContainer);
+      });
+    }
+
+    catBtn.onclick = () => {
+      catContent.classList.toggle('show');
+      catBtn.classList.toggle('active');
+      const icon = catBtn.querySelector('.fa-chevron-down');
+      if (icon) icon.style.transform = catContent.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+    };
+
+    container.appendChild(catBtn);
+    container.appendChild(catContent);
+  });
+}
+
+// Map internal category key to i18n key
+function catKeyMap(cat) {
+  const m = { "Urbano": "urban", "InterUrbano": "interurban", "Media Distancia": "medium", "Larga Distancia": "long" };
+  return m[cat] || cat;
+}
+
+function renderRamales(cat, lName, container) {
+  container.innerHTML = '';
+  const ramalList = document.createElement('div');
+  ramalList.className = 'ramal-list';
+
+  const lineData = db[currentProvince][cat][lName];
+  const rNames = Object.keys(lineData).filter(k => k !== '_info');
+
+  if (rNames.length === 0) {
+    ramalList.innerHTML = `<div style="font-size:0.75rem; color:var(--text-muted); padding:5px;">${t('app.noBranches')}</div>`;
+  } else {
+    rNames.forEach(rName => {
+      const rItem = document.createElement('div');
+      rItem.className = 'ramal-item';
+
+      let actionsHtml = '';
+      if (appMode === 'editor') {
+        actionsHtml = `<div class="edit-actions" onclick="event.stopPropagation()">
+          <i class="fas fa-copy" onclick="openCopyModal('${rName}','${lName}','${cat}')"></i>
+          <i class="fas fa-pencil-alt" onclick="openRenameModal('ramal','${rName}','${cat}','${lName}')"></i>
+          <i class="fas fa-trash" onclick="deleteRamal('${cat}','${lName}','${rName}')"></i>
+        </div>`;
+      }
+
+      rItem.innerHTML = `<span><i class="fas fa-route"></i> ${rName}</span>${actionsHtml}`;
+
+      rItem.onclick = () => {
+        document.querySelectorAll('.ramal-item').forEach(i => i.classList.remove('active'));
+        rItem.classList.add('active');
+        const company = (lineData._info && lineData._info.company) || "";
+        let statusHtml = `${lName} <span style="color:var(--text-muted)">/</span> ${rName}`;
+        if (company) statusHtml += `<span class="status-company-sub">${company}</span>`;
+        document.getElementById('selection-status').innerHTML = statusHtml;
+        loadRamalMap(cat, lName, rName);
+      };
+      ramalList.appendChild(rItem);
+    });
+  }
+
+  if (appMode === 'editor') {
+    const addBtn = document.createElement('button');
+    addBtn.textContent = t('app.addBranch');
+    addBtn.style.cssText = "margin-top:6px;background:none;border:1px dashed var(--border);color:var(--text-muted);width:100%;padding:6px;border-radius:var(--radius-sm);cursor:pointer;font-size:0.75rem;font-family:inherit;transition:color .2s,border-color .2s;";
+    addBtn.onmouseenter = () => { addBtn.style.color = 'var(--accent)'; addBtn.style.borderColor = 'var(--accent)'; };
+    addBtn.onmouseleave = () => { addBtn.style.color = 'var(--text-muted)'; addBtn.style.borderColor = 'var(--border)'; };
+    addBtn.onclick = e => { e.stopPropagation(); openCreateRamalModal(lName); };
+    ramalList.appendChild(addBtn);
+  }
+  container.appendChild(ramalList);
+}
+
+// ============================================================
+// LOAD RAMAL MAP
+// ============================================================
+function loadRamalMap(cat, line, ramal) {
+  editingRamal = ramal;
+  stopBusAnimation();
+  const data = db[currentProvince][cat][line][ramal];
+  drawnItems.clearLayers();
+  itemsToDelete = [];
+  updateDeleteCount();
+
+  if (data) {
+    L.geoJSON(data, {
+      pointToLayer: (feature, latlng) => {
+        const m = L.marker(latlng, { icon: pIcon });
+        setupMarkerPopup(m);
+        return m;
+      },
+      style: { color: '#e94560', weight: 4 },
+      onEachFeature: (feature, layer) => { setupLayerEvents(layer); drawnItems.addLayer(layer); }
+    });
+    if (drawnItems.getLayers().length > 0) map.fitBounds(drawnItems.getBounds());
+    startBusAnimation(data);
+  }
+
+  if (appMode === 'editor') { if (!drawControl._map) map.addControl(drawControl); }
+  else { if (drawControl._map) drawControl.remove(); }
+
+  document.getElementById('save-draw-btn').style.display = 'none';
+  if (window.innerWidth < 768) { resizablePanel.style.height = "25vh"; map.invalidateSize(); }
+}
+
+// ============================================================
+// BUS ANIMATION
+// ============================================================
+function stopBusAnimation() {
+  if (busMarker) { map.removeLayer(busMarker); busMarker = null; busArrowElement = null; }
+  if (busAnimationId) { cancelAnimationFrame(busAnimationId); busAnimationId = null; }
+}
+
+function getAngle(lat1, lng1, lat2, lng2) {
+  const dLon = lng2 - lng1;
+  const y = Math.sin(dLon) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
+}
+
+function startBusAnimation(geoJSON) {
+  if (!geoJSON || !geoJSON.features) return;
+  let latlngs = [];
+  geoJSON.features.forEach(f => {
+    if (f.geometry.type === "LineString")
+      latlngs = latlngs.concat(f.geometry.coordinates.map(c => [c[1], c[0]]));
+  });
+  if (latlngs.length < 2) return;
+
+  busMarker = L.marker(latlngs[0], { icon: busIcon, pane: 'busPane' }).addTo(map);
+  setTimeout(() => {
+    const el = busMarker.getElement();
+    if (el) busArrowElement = el.querySelector('#activeBusArrow');
+  }, 100);
+
+  let currentIndex = 0, progress = 0;
+  const speed = 15;
+
+  function animate() {
+    if (!busMarker) return;
+    const p1 = L.latLng(latlngs[currentIndex]);
+    const p2 = L.latLng(latlngs[currentIndex + 1]);
+    const dist = map.distance(p1, p2);
+    progress += dist > 0 ? speed / dist : 1;
+
+    if (progress >= 1) {
+      progress = 0;
+      currentIndex++;
+      if (currentIndex >= latlngs.length - 1) currentIndex = 0;
+    } else {
+      const lat = p1.lat + (p2.lat - p1.lat) * progress;
+      const lng = p1.lng + (p2.lng - p1.lng) * progress;
+      busMarker.setLatLng([lat, lng]);
+      if (busArrowElement) {
+        const angle = getAngle(p1.lat * Math.PI / 180, p1.lng * Math.PI / 180, p2.lat * Math.PI / 180, p2.lng * Math.PI / 180);
+        busArrowElement.style.transform = `translate(-50%,-50%) rotate(${angle}deg)`;
+      }
+    }
+    busAnimationId = requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// ============================================================
+// CRUD
+// ============================================================
+function showCreateOptions() {
+  document.getElementById('newLineName').value = '';
+  document.getElementById('newLineCompany').value = '';
+  document.getElementById('newLineOfficial').checked = false;
+  document.getElementById('modalCreateLine').style.display = 'flex';
+}
+
+function confirmCreateLine() {
+  const name = document.getElementById('newLineName').value.trim();
+  const company = document.getElementById('newLineCompany').value.trim();
+  const cat = document.getElementById('newLineCategory').value;
+  const isReal = document.getElementById('newLineOfficial').checked;
+
+  if (!name) return alert(t('alert.enterName'));
+  if (db[currentProvince][cat][name]) return alert(t('alert.lineExists'));
+
+  db[currentProvince][cat][name] = { _info: { company, isReal } };
+  saveDB(); closeModals(); renderCategories();
+}
+
+function openCreateRamalModal(lineName) {
+  document.getElementById('targetLineName').innerText = lineName;
+  document.getElementById('newRamalName').value = '';
+  document.getElementById('modalCreateRamal').style.display = 'flex';
+}
+
+function confirmCreateRamal() {
+  const rName = document.getElementById('newRamalName').value.trim();
+  if (!rName) return;
+  const cat = selectedLine.category, lName = selectedLine.name;
+  if (db[currentProvince][cat][lName][rName]) return alert(t('alert.branchExists'));
+
+  db[currentProvince][cat][lName][rName] = null;
+  saveDB(); closeModals();
+  const container = document.getElementById(`ramals-${cat}-${lName}`.replace(/\s/g, ''));
+  if (container) { container.style.display = 'block'; renderRamales(cat, lName, container); }
+}
+
+function openCopyModal(ramal, line, cat) {
+  document.getElementById('copySourceRamal').innerText = ramal;
+  document.getElementById('copySourceLine').value = line;
+  document.getElementById('copySourceCat').value = cat;
+  document.getElementById('copyNewName').value = '';
+  const select = document.getElementById('copyTargetLineSelect');
+  select.innerHTML = '';
+  availableCategories.forEach(c => {
+    Object.keys(db[currentProvince][c]).forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({ cat: c, line: l });
+      opt.text = `[${t('cat.' + catKeyMap(c))}] ${l}`;
+      if (c === cat && l === line) opt.selected = true;
+      select.add(opt);
+    });
+  });
+  document.getElementById('modalCopyRamal').style.display = 'flex';
+}
+
+function confirmCopyRamal() {
+  const sourceRamal = document.getElementById('copySourceRamal').innerText;
+  const sourceLine = document.getElementById('copySourceLine').value;
+  const sourceCat = document.getElementById('copySourceCat').value;
+  const target = JSON.parse(document.getElementById('copyTargetLineSelect').value);
+  let newName = document.getElementById('copyNewName').value.trim();
+  if (!newName) newName = sourceRamal + " (Copy)";
+
+  if (db[currentProvince][target.cat][target.line][newName]) return alert(t('alert.branchExistsCopy'));
+  const dataToCopy = db[currentProvince][sourceCat][sourceLine][sourceRamal];
+  db[currentProvince][target.cat][target.line][newName] = dataToCopy ? JSON.parse(JSON.stringify(dataToCopy)) : null;
+  saveDB(); closeModals();
+  alert(t('alert.branchCopied'));
+  renderCategories();
+}
+
+function openRenameModal(type, oldName, cat, parentLine) {
+  document.getElementById('renameType').value = type;
+  document.getElementById('renameOldName').value = oldName;
+  document.getElementById('renameCat').value = cat;
+  if (parentLine) document.getElementById('renameParentLine').value = parentLine;
+  document.getElementById('renameNewName').value = oldName;
+
+  const lineFields = document.getElementById('renameLineFields');
+  if (type === 'line') {
+    lineFields.style.display = 'block';
+    const info = db[currentProvince][cat][oldName]._info || {};
+    document.getElementById('renameNewCompany').value = info.company || '';
+    document.getElementById('renameNewOfficial').checked = info.isReal === true;
+    document.getElementById('renameNewCategory').value = cat;
+  } else { lineFields.style.display = 'none'; }
+
+  document.getElementById('modalRename').style.display = 'flex';
+}
+
+function confirmRename() {
+  const type = document.getElementById('renameType').value;
+  const oldName = document.getElementById('renameOldName').value;
+  const newName = document.getElementById('renameNewName').value.trim();
+  const oldCat = document.getElementById('renameCat').value;
+  if (!newName) return alert(t('alert.invalidName'));
+
+  if (type === 'line') {
+    const newCompany = document.getElementById('renameNewCompany').value.trim();
+    const newCat = document.getElementById('renameNewCategory').value;
+    const isReal = document.getElementById('renameNewOfficial').checked;
+
+    if ((newName !== oldName || newCat !== oldCat) && db[currentProvince][newCat][newName])
+      return alert(t('alert.lineExistsCat'));
+
+    const lineData = db[currentProvince][oldCat][oldName];
+    if (!lineData._info) lineData._info = {};
+    lineData._info.company = newCompany;
+    lineData._info.isReal = isReal;
+
+    if (newCat !== oldCat || newName !== oldName) {
+      db[currentProvince][newCat][newName] = lineData;
+      delete db[currentProvince][oldCat][oldName];
+      if (selectedLine && selectedLine.name === oldName) { selectedLine.name = newName; selectedLine.category = newCat; }
+    }
+  } else {
+    const pLine = document.getElementById('renameParentLine').value;
+    if (newName !== oldName && db[currentProvince][oldCat][pLine][newName]) return alert(t('alert.invalidName'));
+    if (newName !== oldName) {
+      db[currentProvince][oldCat][pLine][newName] = db[currentProvince][oldCat][pLine][oldName];
+      delete db[currentProvince][oldCat][pLine][oldName];
+      if (editingRamal === oldName) editingRamal = newName;
+    }
+  }
+  saveDB(); closeModals(); renderCategories();
+}
+
+function deleteLine(cat, name) {
+  if (confirm(t('alert.deleteLine', { name }))) {
+    delete db[currentProvince][cat][name];
+    if (selectedLine && selectedLine.name === name) {
+      selectedLine = null; editingRamal = null; drawnItems.clearLayers();
+      document.getElementById('selection-status').textContent = t('app.selectLine');
+    }
+    saveDB(); renderCategories();
+  }
+}
+
+function deleteRamal(cat, line, ramal) {
+  if (confirm(t('alert.deleteBranch', { name: ramal }))) {
+    delete db[currentProvince][cat][line][ramal];
+    if (editingRamal === ramal) {
+      editingRamal = null; drawnItems.clearLayers(); stopBusAnimation();
+      document.getElementById('selection-status').textContent = t('app.selectLine');
+    }
+    saveDB();
+    const container = document.getElementById(`ramals-${cat}-${line}`.replace(/\s/g, ''));
+    renderRamales(cat, line, container);
+  }
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function openExportModal() {
+  const listContainer = document.getElementById('exportChecklist');
+  listContainer.innerHTML = '';
+  let hasLines = false;
+  const provData = db[currentProvince];
+
+  availableCategories.forEach(cat => {
+    const lines = Object.keys(provData[cat] || {});
+    if (lines.length > 0) {
+      const catHeader = document.createElement('div');
+      catHeader.style.cssText = "font-weight:600;margin:10px 0 5px;color:var(--teal);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;";
+      catHeader.innerText = t('cat.' + catKeyMap(cat));
+      listContainer.appendChild(catHeader);
+
+      lines.forEach(lineName => {
+        hasLines = true;
+        const item = document.createElement('div');
+        item.className = 'export-item';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'export-checkbox';
+        checkbox.value = JSON.stringify({ cat, lineName });
+        checkbox.id = `export-${cat}-${lineName}`;
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.innerText = lineName;
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        listContainer.appendChild(item);
+      });
+    }
+  });
+
+  if (!hasLines) listContainer.innerHTML = `<div style="text-align:center;padding:18px;color:var(--text-muted);font-size:0.8rem;">${t('export.noLines')}</div>`;
+  document.getElementById('modalExport').style.display = 'flex';
+}
+
+function downloadJSON() {
+  const checkboxes = document.querySelectorAll('.export-checkbox:checked');
+  if (checkboxes.length === 0) return alert(t('alert.selectExport'));
+
+  const exportPackage = {
+    type: "BusCreatorPackage",
+    version: "3.0",
+    province: currentProvince,
+    timestamp: new Date().toISOString(),
+    lines: []
+  };
+
+  checkboxes.forEach(cb => {
+    const { cat, lineName } = JSON.parse(cb.value);
+    exportPackage.lines.push({ category: cat, name: lineName, data: db[currentProvince][cat][lineName] });
+  });
+
+  const blob = new Blob([JSON.stringify(exportPackage, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = checkboxes.length === 1
+    ? `Line_${JSON.parse(checkboxes[0].value).lineName.replace(/\s/g, '_')}.json`
+    : `BusCreator_Pack_${checkboxes.length}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  closeModals();
+}
+
+function openImportModal() {
+  document.getElementById('importInput').value = '';
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('modalImport').style.display = 'flex';
+}
+
+function readJSONFile(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => { document.getElementById('importInput').value = e.target.result; };
+    reader.readAsText(input.files[0]);
+  }
+}
+
+function confirmImport() {
+  try {
+    const raw = document.getElementById('importInput').value;
+    if (!raw) return alert(t('alert.emptyContent'));
+    const data = JSON.parse(raw);
+    let importCount = 0;
+
+    // New format (BusCreatorPackage or legacy RedBusPackage)
+    if ((data.type === "BusCreatorPackage" || data.type === "RedBusPackage") && Array.isArray(data.lines)) {
+      if (!confirm(t('alert.detectLines', { n: data.lines.length }))) return;
+      data.lines.forEach(item => {
+        const safeCat = availableCategories.includes(item.category) ? item.category : "Media Distancia";
+        db[currentProvince][safeCat][item.name] = item.data;
+        importCount++;
+      });
+    // Legacy single line format
+    } else if (data.type === "RedBusLine" || data.ramales) {
+      const safeCat = availableCategories.includes(data.category) ? data.category : "Media Distancia";
+      const targetName = data.name || "Imported Line";
+      if (db[currentProvince][safeCat][targetName]) {
+        if (!confirm(t('alert.lineOverwrite', { name: targetName }))) return;
+      }
+      db[currentProvince][safeCat][targetName] = data.ramales || data;
+      importCount = 1;
+    } else {
+      throw new Error("Unknown format");
+    }
+
+    saveDB(); closeModals();
+    alert(t('alert.importedOk', { n: importCount }));
+    renderCategories();
+  } catch (e) {
+    alert(t('alert.importError') + e.message);
+    console.error(e);
+  }
+}
+
+function closeModals() {
+  document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+}
+
+function saveDB() {
+  localStorage.setItem('redbus_sim_db', JSON.stringify(db));
+}
+
+// ============================================================
+// INIT
+// ============================================================
+applyI18n();
+</script>
+</body>
+</html>
