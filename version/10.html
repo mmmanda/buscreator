@@ -1,0 +1,1251 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Bus Creator Simulator - 1.0</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Bus Creator es una herramienta interactiva para crear, editar y visualizar líneas de bus en un mapa. Diseña recorridos, agrega paradas y simula el movimiento de los buses en tiempo real." />
+  <meta name="keywords" content="bus creator, líneas de bus, simulador bus, mapa transporte, bus route planner, transit designer" />
+  <meta name="author" content="Bus Creator" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0f0f14" />
+  <link rel="canonical" href="https://mmmanda.github.io/buscreator/version/10.html" />
+
+  <!-- Open Graph (Facebook / LinkedIn / WhatsApp) -->
+  <meta property="og:title" content="Bus Creator – Diseña líneas de bus en el mapa" />
+  <meta property="og:description" content="Crea, edita y visualiza líneas de bus interactivas. Agrega paradas, diseña recorridos y observa los buses moverse en tiempo real sobre el mapa." />
+  <meta property="og:image" content="https://mmmanda.github.io/buscreator/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://mmmanda.github.io/buscreator/version/10.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Bus Creator" />
+  <meta property="og:locale" content="es_AR" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:locale:alternate" content="pt_BR" />
+  <meta property="og:locale:alternate" content="ru_RU" />
+  <meta property="og:locale:alternate" content="de_DE" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Bus Creator – Diseña líneas de bus en el mapa" />
+  <meta name="twitter:description" content="Crea, edita y visualiza líneas de bus interactivas con paradas y animaciones en tiempo real." />
+  <meta name="twitter:image" content="https://mmmanda.github.io/buscreator/og-image.png" />
+
+  <!-- Schema.org / JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Bus Creator",
+    "url": "https://mmmanda.github.io/buscreator/version/10.html",
+    "description": "Herramienta interactiva para crear y visualizar líneas de bus en mapas.",
+    "applicationCategory": "UtilityApplication",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+
+  <style>
+    :root {
+      --primary: #265a9e; 
+      --primary-dark: #1a3f70;
+      --accent: #f57f20;  
+      --bg: #f2f4f7;      
+      --text: #000000;
+      --card-bg: #ffffff;
+      --stop-color: #FABB2D;
+      --bus-color: #1E4686;
+    }
+
+    body { margin: 0; font-family: 'Roboto', sans-serif; background: var(--bg); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* --- PANTALLA DE INICIO --- */
+    #home-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg); z-index: 2000; display: flex; flex-direction: column;
+      align-items: center; 
+      overflow-y: auto;
+    }
+
+    .home-header-bg {
+      width: 100%; background: var(--primary); padding: 30px 0; text-align: center; color: white;
+      border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+      margin-bottom: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    
+    .home-header-bg h1 { margin: 10px 0 5px 0; font-size: 1.5rem; font-weight: 700; }
+    .home-header-bg i { font-size: 3rem; margin-bottom: 10px; }
+
+    .menu-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+      width: 90%; max-width: 350px; padding-bottom: 40px;
+    }
+
+    .menu-card {
+      background: var(--card-bg); border-radius: 12px; padding: 25px 15px; text-align: center; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; 
+      transition: transform 0.2s, box-shadow 0.2s; 
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;
+      border: 1px solid rgba(0,0,0,0.02);
+    }
+    .menu-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+    
+    .icon-circle { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+    .menu-card i { font-size: 2.2rem; color: #555; }
+    
+    .menu-card:nth-child(1) i { color: var(--accent); }
+    .menu-card:nth-child(2) i { color: var(--primary); }
+    .menu-card:nth-child(3) i { color: #4CAF50; }
+    .menu-card:nth-child(4) i { color: #607D8B; }
+    .menu-card span { font-weight: 500; color: #444; font-size: 0.95rem; line-height: 1.2; }
+
+    /* --- INTERFAZ MAPA --- */
+    #app-interface { display: none; height: 100%; width: 100%; flex-direction: column; overflow: hidden; }
+
+    header {
+      background: var(--primary); color: white; padding: 15px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1002;
+      flex-shrink: 0; /* Header fijo */
+    }
+    header h2 { margin: 0; font-size: 1.2rem; font-weight: 500; flex: 1; }
+    .back-btn { cursor: pointer; font-size: 1.2rem; padding: 5px; }
+
+    .header-action-btn {
+      color: white; border: none; padding: 8px 15px; 
+      border-radius: 20px; font-weight: bold; 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      cursor: pointer; display: none;
+      align-items: center; gap: 5px; font-size: 0.9rem;
+    }
+    
+    #save-draw-btn { background: var(--accent); }
+    #delete-multi-btn { background: #d32f2f; }
+    #delete-multi-btn.active { background: #b71c1c; border: 2px solid #ffcdd2; }
+
+    /* MAPA: Ocupa el espacio restante (flex-grow) */
+    #map-container {
+        flex-grow: 1;
+        position: relative;
+        width: 100%;
+        min-height: 0; /* Importante para flexbox */
+        display: flex;
+    }
+    #map { width: 100%; height: 100%; }
+
+    /* PANEL REDIMENSIONABLE (Req 1) */
+    #resizable-panel {
+        background: white;
+        display: flex;
+        flex-direction: column;
+        height: 40vh; /* Altura inicial */
+        min-height: 60px; /* Altura mínima (solo barra estado) */
+        max-height: 85vh;
+        z-index: 1003;
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    /* Manija para arrastrar */
+    #resize-handle {
+        width: 100%;
+        height: 20px;
+        background: white;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: row-resize;
+        touch-action: none; /* Prevenir scroll nativo al arrastrar */
+    }
+    #resize-handle::after {
+        content: '';
+        width: 40px;
+        height: 4px;
+        background: #ddd;
+        border-radius: 2px;
+    }
+
+    /* Barra de estado */
+    #selection-status {
+        background: white;
+        color: var(--accent);
+        text-align: left;
+        padding: 5px 15px 12px 15px;
+        font-weight: 700;
+        font-size: 1.2rem;
+        border-bottom: 1px solid #eee;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        flex-shrink: 0;
+    }
+
+    /* Lista (Scrollable) */
+    #bottom-panel-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        background: white;
+    }
+
+    /* Estilos Botones Lista */
+    .base-btn {
+      background: white; border: 1px solid #e0e0e0; padding: 15px;
+      border-radius: 8px; margin-bottom: 10px; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+      font-weight: 500; color: var(--text); box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      transition: all 0.2s;
+    }
+    .base-btn:hover { background: #fafafa; }
+    .category-btn { font-weight: 700; }
+    .category-btn i { color: var(--accent); transition: transform 0.2s; }
+    .category-btn.active { background: #f4f4f4; }
+    .category-content { display: none; margin-bottom: 10px; }
+    .category-content.show { display: block; }
+
+    .line-item-btn { margin-left: 20px; width: calc(100% - 20px); box-sizing: border-box; border-left: 1px solid #e0e0e0; }
+    .line-item-btn.selected { background: transparent; font-weight: bold; border-left: 3px solid var(--accent); }
+
+    .edit-actions { display: flex; gap: 10px; opacity: 0.6; }
+    .edit-actions i:hover { opacity: 1; color: var(--accent); }
+
+    .ramal-list { margin-left: 40px; padding-left: 10px; margin-bottom: 15px; }
+    .ramal-item {
+      padding: 8px 10px; margin-bottom: 5px; border: none; background: transparent;
+      border-radius: 4px; cursor: pointer; font-size: 0.95rem; color: var(--text); 
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .ramal-item:hover { background: #eee; }
+    .ramal-item.active { color: var(--text); font-weight: bold; background: rgba(0,0,0,0.05); }
+    
+    /* BOTONES FLOTANTES */
+    .fab-container {
+        position: absolute; bottom: 30px; right: 20px;
+        display: flex; flex-direction: column; gap: 15px;
+        z-index: 2000;
+        pointer-events: none; /* Para que el contenedor no bloquee clicks */
+    }
+
+    .fab {
+        width: 60px; height: 60px;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+        cursor: pointer; transition: transform 0.2s;
+        pointer-events: auto; /* Reactivar clicks en botones */
+        color: white;
+    }
+    .fab:active { transform: scale(0.95); }
+
+    .fab-create { background: var(--primary); }
+    .fab-geo { background: white; color: #333; font-size: 1.2rem; } /* Req 3 */
+
+    /* --- MODALES --- */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); z-index: 3000; display: none;
+      align-items: center; justify-content: center; backdrop-filter: blur(2px);
+    }
+    .modal-box {
+      background: white; padding: 25px; border-radius: 12px; width: 85%; max-width: 350px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-box h3 { margin-top: 0; color: var(--primary); font-size: 1.2rem; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.9rem; margin-bottom: 5px; color: #000; font-weight: 500; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-family: inherit;
+    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; }
+    .btn-cancel { background: #f0f0f0; color: #333; }
+    .btn-confirm { background: var(--primary); color: white; }
+
+    /* ICONOS */
+    .custom-p-icon {
+      background-color: var(--stop-color); color: white; border: none;
+      border-radius: 0px; font-weight: 700; font-family: Arial, sans-serif;
+      text-align: center; line-height: 26px; font-size: 16px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+    }
+    
+    .bus-marker-container {
+        position: relative; width: 100%; height: 100%;
+        display: flex; justify-content: center; align-items: center;
+    }
+    .bus-marker-icon { font-size: 24px; color: var(--bus-color); text-shadow: 0 0 3px white; z-index: 2; }
+    .bus-orbit-arrow {
+        position: absolute; width: 38px; height: 38px; top: 50%; left: 50%;
+        transform: translate(-50%, -50%); pointer-events: none; z-index: 1;
+    }
+    .bus-orbit-arrow::after {
+        content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+        width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent;
+        border-bottom: 8px solid var(--accent);
+    }
+
+    .leaflet-popup-content-wrapper { border-radius: 8px; }
+    .marker-input { padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 100%; box-sizing: border-box; margin-top: 5px; }
+    .marker-read-only { font-weight: bold; font-size: 1.1em; color: var(--primary); }
+    .file-btn-group { display: flex; gap: 10px; margin-bottom: 10px; }
+    .file-btn { flex: 1; padding: 10px; border: 1px dashed #aaa; background: #f9f9f9; text-align: center; cursor: pointer; border-radius: 6px; }
+    .file-btn:hover { background: #eee; }
+
+  </style>
+</head>
+<body>
+
+  <div id="home-screen">
+    <div class="home-header-bg">
+      <i class="fas fa-bus-alt"></i>
+      <h1>Bus Creator Tucumán</h1>
+      <p style="opacity:0.8; margin:0;">Simulador de Gestión</p>
+    </div>
+
+    <div class="menu-grid">
+      <div class="menu-card" onclick="openApp('editor')">
+        <div class="icon-circle"><i class="fas fa-edit"></i></div>
+        <span>Editor de<br>Líneas</span>
+      </div>
+      <div class="menu-card" onclick="openApp('viewer')">
+        <div class="icon-circle"><i class="fas fa-map-marked-alt"></i></div>
+        <span>Mapa de<br>Líneas</span>
+      </div>
+      <div class="menu-card" onclick="openExportModal()">
+        <div class="icon-circle"><i class="fas fa-file-export"></i></div>
+        <span>Exportar<br>Línea</span>
+      </div>
+      <div class="menu-card" onclick="openImportModal()">
+        <div class="icon-circle"><i class="fas fa-file-import"></i></div>
+        <span>Importar<br>Línea</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-interface">
+    <header>
+      <i class="fas fa-arrow-left back-btn" onclick="goHome()"></i>
+      <h2 id="app-title">Mapa de Líneas</h2>
+      
+      <button id="delete-multi-btn" class="header-action-btn" onclick="toggleMultiDelete()">
+        <i class="fas fa-trash-alt"></i> Borrar (<span id="delete-count">0</span>)
+      </button>
+
+      <button id="save-draw-btn" class="header-action-btn" onclick="saveCurrentRamalDraw()">
+        <i class="fas fa-save"></i> Guardar
+      </button>
+    </header>
+
+    <div id="map-container">
+        <div id="map"></div>
+        
+        <div class="fab-container">
+             <div class="fab fab-geo" onclick="locateUser()" title="Mi ubicación">
+                <i class="fas fa-crosshairs"></i>
+            </div>
+            
+            <div class="fab fab-create" id="fabCreate" onclick="showCreateOptions()" style="display:none">
+                <i class="fas fa-plus"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div id="resizable-panel">
+        <div id="resize-handle"></div>
+        <div id="selection-status">Selecciona una línea</div>
+        <div id="bottom-panel-content">
+            <div id="categories-container"></div>
+        </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalCreateLine">
+    <div class="modal-box">
+      <h3>Nueva Línea</h3>
+      <div class="form-group">
+        <label>Nombre de la Línea</label>
+        <input type="text" id="newLineName" placeholder="Ej: Línea 102">
+      </div>
+      <div class="form-group">
+        <label>Tipo de Servicio</label>
+        <select id="newLineCategory">
+          <option value="Urbano">Urbano</option>
+          <option value="InterUrbano">InterUrbano</option>
+          <option value="Rural">Rural</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeModals()">Cancelar</button>
+        <button class="btn btn-confirm" onclick="confirmCreateLine()">Crear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalCreateRamal">
+    <div class="modal-box">
+      <h3>Nuevo Ramal</h3>
+      <p style="font-size:0.8rem; color:#666">Agregando a: <span id="targetLineName" style="font-weight:bold"></span></p>
+      <div class="form-group">
+        <label>Nombre del Ramal</label>
+        <input type="text" id="newRamalName" placeholder="Ej: Ramal San Pablo">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeModals()">Cancelar</button>
+        <button class="btn btn-confirm" onclick="confirmCreateRamal()">Crear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalCopyRamal">
+    <div class="modal-box">
+        <h3>Copiar Ramal</h3>
+        <p style="font-size:0.9rem">Ramal origen: <b id="copySourceRamal"></b></p>
+        <input type="hidden" id="copySourceLine">
+        <input type="hidden" id="copySourceCat">
+        <div class="form-group">
+            <label>Línea de Destino:</label>
+            <select id="copyTargetLineSelect"></select>
+        </div>
+        <div class="form-group">
+            <label>Nuevo Nombre (Opcional):</label>
+            <input type="text" id="copyNewName" placeholder="Dejar vacío para mantener nombre">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="closeModals()">Cancelar</button>
+            <button class="btn btn-confirm" onclick="confirmCopyRamal()">Copiar</button>
+        </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalRename">
+    <div class="modal-box">
+      <h3>Editar Nombre</h3>
+      <input type="hidden" id="renameType"> <input type="hidden" id="renameOldName">
+      <input type="hidden" id="renameCat">
+      <input type="hidden" id="renameParentLine">
+      <div class="form-group">
+        <label>Nuevo Nombre</label>
+        <input type="text" id="renameNewName">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeModals()">Cancelar</button>
+        <button class="btn btn-confirm" onclick="confirmRename()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalExport">
+    <div class="modal-box">
+      <h3>Exportar Línea</h3>
+      <div class="form-group">
+        <label>Selecciona la Línea:</label>
+        <select id="exportLineSelect"></select>
+      </div>
+      <div class="form-group">
+          <button class="btn btn-confirm" style="width:100%" onclick="downloadJSON()">
+              <i class="fas fa-download"></i> Descargar Archivo JSON
+          </button>
+      </div>
+      <div class="form-group">
+        <label>O copiar código:</label>
+        <textarea id="exportOutput" rows="3" readonly onclick="this.select()"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeModals()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalImport">
+    <div class="modal-box">
+      <h3>Importar Línea</h3>
+      <div class="file-btn-group">
+          <label class="file-btn">
+              <i class="fas fa-folder-open"></i> Elegir Archivo JSON
+              <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="readJSONFile(this)">
+          </label>
+      </div>
+      <div class="form-group">
+        <label>O pegar código JSON:</label>
+        <textarea id="importInput" rows="5" placeholder="{...}"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeModals()">Cancelar</button>
+        <button class="btn btn-confirm" onclick="confirmImport()">Importar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+  <script>
+    // --- ESTADO Y DATOS ---
+    // Req 2: Solo Tucumán
+    let db = JSON.parse(localStorage.getItem('redbus_sim_db')) || {
+      "Tucumán": { "Urbano": {}, "InterUrbano": {}, "Rural": {} }
+    };
+
+    // Migración simple si existían datos viejos con provincias borradas
+    if(!db["Tucumán"]) db = { "Tucumán": { "Urbano": {}, "InterUrbano": {}, "Rural": {} } };
+
+    const currentProvince = "Tucumán";
+    let appMode = "viewer"; 
+    let selectedLine = null; 
+    let editingRamal = null;
+    
+    // Variables Animación
+    let busMarker = null; 
+    let busAnimationId = null; 
+    let busArrowElement = null;
+
+    // Variables Borrado Múltiple
+    let isDeleteMode = false;
+    let itemsToDelete = [];
+
+    // Configuración Mapa
+    const map = L.map('map', { zoomControl: false }).setView([-26.8241, -65.2226], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+    
+    // Pane bus
+    map.createPane('busPane');
+    map.getPane('busPane').style.zIndex = 650;
+    map.getPane('busPane').style.pointerEvents = 'none';
+
+    const drawnItems = new L.FeatureGroup().addTo(map);
+
+    // --- LOGICA PANEL REDIMENSIONABLE (Req 1) ---
+    const resizablePanel = document.getElementById('resizable-panel');
+    const resizeHandle = document.getElementById('resize-handle');
+    let isDragging = false;
+    let startY, startHeight;
+
+    // Eventos Mouse
+    resizeHandle.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startY = e.clientY;
+        startHeight = resizablePanel.clientHeight;
+        document.body.style.cursor = 'row-resize';
+    });
+    
+    // Eventos Touch
+    resizeHandle.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startY = e.touches[0].clientY;
+        startHeight = resizablePanel.clientHeight;
+    });
+
+    const onMove = (clientY) => {
+        if (!isDragging) return;
+        const delta = startY - clientY;
+        const newHeight = startHeight + delta;
+        // Aplicar altura
+        resizablePanel.style.height = `${newHeight}px`;
+        // Informar al mapa que el tamaño cambió
+        map.invalidateSize();
+    };
+
+    const onEnd = () => {
+        isDragging = false;
+        document.body.style.cursor = 'default';
+        map.invalidateSize();
+    };
+
+    window.addEventListener('mousemove', (e) => onMove(e.clientY));
+    window.addEventListener('touchmove', (e) => onMove(e.touches[0].clientY), {passive: false});
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchend', onEnd);
+
+
+    // --- GEOLOCALIZACIÓN (Req 3) ---
+    let userLocationMarker = null;
+
+    function locateUser() {
+        if (!navigator.geolocation) {
+            alert("Tu navegador no soporta geolocalización.");
+            return;
+        }
+
+        // Icono simple para usuario
+        const userIcon = L.divIcon({
+            html: '<div style="width:15px; height:15px; background:#4285F4; border:2px solid white; border-radius:50%; box-shadow:0 0 5px rgba(0,0,0,0.5);"></div>',
+            className: 'user-loc-icon',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                const latLng = [latitude, longitude];
+
+                if(userLocationMarker) map.removeLayer(userLocationMarker);
+                
+                userLocationMarker = L.marker(latLng, { icon: userIcon }).addTo(map);
+                userLocationMarker.bindPopup("Estás aquí").openPopup();
+                
+                map.flyTo(latLng, 15);
+            },
+            (error) => {
+                console.error(error);
+                alert("No se pudo obtener tu ubicación. Verifica los permisos GPS.");
+            },
+            { enableHighAccuracy: true }
+        );
+    }
+
+
+    // --- RESTO DEL CODIGO (Lógica Bus Creator) ---
+
+    const pIcon = L.divIcon({
+      className: 'custom-p-icon',
+      html: 'P',
+      iconSize: [26, 26],
+      iconAnchor: [13, 13], 
+      popupAnchor: [0, -15]
+    });
+
+    const busIcon = L.divIcon({
+        className: 'bus-marker-wrapper', 
+        html: `
+            <div class="bus-marker-container">
+                <div class="bus-orbit-arrow" id="activeBusArrow"></div>
+                <div class="bus-marker-icon"><i class="fas fa-bus"></i></div>
+            </div>
+        `,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+    });
+
+    const drawControl = new L.Control.Draw({
+      position: 'topright',
+      draw: {
+        polyline: { shapeOptions: { color: 'red', weight: 4 } },
+        marker: { icon: pIcon },
+        polygon: false, rectangle: false, circle: false, circlemarker: false
+      },
+      edit: { featureGroup: drawnItems }
+    });
+
+    map.on(L.Draw.Event.CREATED, (e) => {
+      const layer = e.layer;
+      if(layer instanceof L.Marker) {
+        setupMarkerPopup(layer, "");
+      }
+      setupLayerEvents(layer);
+      drawnItems.addLayer(layer);
+      if(appMode === 'editor') showSaveButton();
+    });
+
+    map.on('draw:edited', () => showSaveButton());
+    map.on('draw:deleted', () => showSaveButton());
+
+    function setupLayerEvents(layer) {
+        layer.on('click', function(e) {
+            if(isDeleteMode) {
+                toggleItemForDeletion(layer);
+                L.DomEvent.stop(e);
+            }
+        });
+    }
+
+    function setupMarkerPopup(layer, name) {
+      layer.feature = layer.feature || { type: "Feature", properties: {} };
+      layer.feature.properties.name = name || "";
+      const container = document.createElement('div');
+      if(appMode === 'viewer') {
+          container.innerHTML = `<div class="marker-read-only">${layer.feature.properties.name || "Parada"}</div>`;
+      } else {
+          container.innerHTML = `<b>Nombre Parada:</b><br>`;
+          const input = document.createElement('input');
+          input.className = 'marker-input';
+          input.value = layer.feature.properties.name;
+          input.placeholder = "Escribe nombre...";
+          input.onchange = function() {
+            layer.feature.properties.name = this.value;
+            if(appMode === 'editor') showSaveButton();
+          };
+          container.appendChild(input);
+      }
+      layer.bindPopup(container);
+    }
+
+    function showSaveButton() {
+      document.getElementById('save-draw-btn').style.display = 'flex';
+    }
+
+    function toggleMultiDelete() {
+        isDeleteMode = !isDeleteMode;
+        const btn = document.getElementById('delete-multi-btn');
+        if (isDeleteMode) {
+            btn.classList.add('active');
+            btn.innerHTML = `<i class="fas fa-check"></i> Confirmar (<span id="delete-count">0</span>)`;
+            itemsToDelete = [];
+            map.closePopup();
+            if(drawControl._map) drawControl.remove();
+        } else {
+            if (itemsToDelete.length > 0) {
+                if(confirm(`¿Borrar ${itemsToDelete.length} elementos seleccionados?`)) {
+                    itemsToDelete.forEach(layer => drawnItems.removeLayer(layer));
+                    showSaveButton();
+                } else {
+                    itemsToDelete.forEach(layer => layer.setOpacity ? layer.setOpacity(1) : layer.setStyle({opacity: 1}));
+                }
+            }
+            btn.classList.remove('active');
+            updateDeleteCount();
+            btn.innerHTML = `<i class="fas fa-trash-alt"></i> Borrar (<span id="delete-count">0</span>)`;
+            itemsToDelete = [];
+            if(appMode === 'editor' && selectedLine) map.addControl(drawControl);
+        }
+    }
+
+    function toggleItemForDeletion(layer) {
+        const index = itemsToDelete.indexOf(layer);
+        if (index === -1) {
+            itemsToDelete.push(layer);
+            if(layer.setOpacity) layer.setOpacity(0.4); 
+            else if(layer.setStyle) layer.setStyle({opacity: 0.4});
+        } else {
+            itemsToDelete.splice(index, 1);
+            if(layer.setOpacity) layer.setOpacity(1);
+            else if(layer.setStyle) layer.setStyle({opacity: 1});
+        }
+        updateDeleteCount();
+    }
+
+    function updateDeleteCount() {
+        const span = document.getElementById('delete-count');
+        if(span) span.innerText = itemsToDelete.length;
+    }
+
+    function saveCurrentRamalDraw() {
+      if(selectedLine && editingRamal) {
+        const geoJSON = drawnItems.toGeoJSON();
+        db[currentProvince][selectedLine.category][selectedLine.name][editingRamal] = geoJSON;
+        saveDB();
+        document.getElementById('save-draw-btn').style.display = 'none';
+        alert('Recorrido y paradas guardados.');
+        stopBusAnimation();
+        startBusAnimation(geoJSON);
+      }
+    }
+
+    function goHome() {
+      stopBusAnimation();
+      document.getElementById('app-interface').style.display = 'none';
+      document.getElementById('home-screen').style.display = 'flex';
+      drawnItems.clearLayers();
+      if(userLocationMarker) map.removeLayer(userLocationMarker);
+      if(appMode === 'editor') {
+          if(drawControl._map) drawControl.remove();
+          document.getElementById('delete-multi-btn').style.display = 'none';
+      }
+      isDeleteMode = false;
+      // Reset height panel
+      document.getElementById('resizable-panel').style.height = "40vh";
+    }
+
+    function openApp(mode) {
+      appMode = mode;
+      document.getElementById('home-screen').style.display = 'none';
+      document.getElementById('app-interface').style.display = 'flex';
+      
+      const title = mode === 'editor' ? `Editor de líneas` : `Mapa de líneas`;
+      document.getElementById('app-title').innerText = title;
+      document.getElementById('fabCreate').style.display = (mode === 'editor') ? 'flex' : 'none';
+      
+      document.getElementById('delete-multi-btn').style.display = (mode === 'editor') ? 'flex' : 'none';
+      document.getElementById('save-draw-btn').style.display = 'none';
+      
+      document.getElementById('selection-status').innerText = "Selecciona una línea";
+
+      drawnItems.clearLayers();
+      selectedLine = null;
+      editingRamal = null;
+      renderCategories();
+      
+      // Default Tucumán
+      map.setView([-26.8241, -65.2226], 13);
+      map.invalidateSize();
+    }
+
+    function renderCategories() {
+      const container = document.getElementById('categories-container');
+      container.innerHTML = '';
+      const provinceData = db[currentProvince];
+      const categories = ["Urbano", "InterUrbano", "Rural"];
+
+      categories.forEach(cat => {
+        const catBtn = document.createElement('div');
+        catBtn.className = 'base-btn category-btn';
+        catBtn.innerHTML = `<span>${cat}</span> <i class="fas fa-chevron-down"></i>`;
+        
+        const catContent = document.createElement('div');
+        catContent.className = 'category-content';
+        
+        const lines = provinceData[cat] || {};
+        const lineNames = Object.keys(lines);
+        
+        if (lineNames.length === 0) {
+          catContent.innerHTML = '<div style="padding:10px 20px; color:#999; font-size:0.8rem; font-style:italic;">Sin líneas disponibles</div>';
+        } else {
+          lineNames.forEach(lName => {
+            const lItem = document.createElement('div');
+            lItem.className = 'base-btn line-item-btn';
+            
+            let actionsHtml = '';
+            if(appMode === 'editor') {
+              actionsHtml = `
+                <div class="edit-actions" onclick="event.stopPropagation()">
+                  <i class="fas fa-pencil-alt" onclick="openRenameModal('line', '${lName}', '${cat}')"></i>
+                  <i class="fas fa-trash" onclick="deleteLine('${cat}', '${lName}')"></i>
+                </div>
+              `;
+            }
+
+            lItem.innerHTML = `<span>${lName}</span> ${actionsHtml}`;
+            
+            const ramalContainer = document.createElement('div');
+            ramalContainer.className = 'ramal-list-container';
+            ramalContainer.id = `ramals-${cat}-${lName}`.replace(/\s/g,'');
+            ramalContainer.style.display = 'none';
+
+            lItem.onclick = () => {
+              const isOpen = ramalContainer.style.display === 'block';
+              document.querySelectorAll('.line-item-btn').forEach(b => b.classList.remove('selected'));
+              document.querySelectorAll('.ramal-list-container').forEach(c => c.style.display = 'none');
+              
+              if(!isOpen) {
+                lItem.classList.add('selected');
+                ramalContainer.style.display = 'block';
+                selectedLine = { category: cat, name: lName };
+                document.getElementById('selection-status').innerHTML = `${lName}`;
+                renderRamales(cat, lName, ramalContainer);
+              } else {
+                selectedLine = null;
+                document.getElementById('selection-status').innerText = "Selecciona una línea";
+              }
+            };
+
+            catContent.appendChild(lItem);
+            catContent.appendChild(ramalContainer);
+          });
+        }
+
+        catBtn.onclick = () => {
+          catContent.classList.toggle('show');
+          catBtn.classList.toggle('active');
+          const icon = catBtn.querySelector('.fa-chevron-down');
+          if(icon) icon.style.transform = catContent.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+        };
+
+        container.appendChild(catBtn);
+        container.appendChild(catContent);
+      });
+    }
+
+    function renderRamales(cat, lName, container) {
+      container.innerHTML = '';
+      const ramalList = document.createElement('div');
+      ramalList.className = 'ramal-list';
+      
+      const ramales = db[currentProvince][cat][lName];
+      const rNames = Object.keys(ramales);
+
+      if(rNames.length === 0) {
+        ramalList.innerHTML = '<div style="font-size:0.8rem; color:#888; padding:5px;">Sin ramales creados.</div>';
+      } else {
+        rNames.forEach(rName => {
+          const rItem = document.createElement('div');
+          rItem.className = 'ramal-item';
+          
+          let actionsHtml = '';
+          if(appMode === 'editor') {
+            actionsHtml = `
+              <div class="edit-actions" onclick="event.stopPropagation()">
+                <i class="fas fa-copy" title="Copiar Ramal" onclick="openCopyModal('${rName}', '${lName}', '${cat}')"></i>
+                <i class="fas fa-pencil-alt" onclick="openRenameModal('ramal', '${rName}', '${cat}', '${lName}')"></i>
+                <i class="fas fa-trash" onclick="deleteRamal('${cat}', '${lName}', '${rName}')"></i>
+              </div>
+            `;
+          }
+
+          rItem.innerHTML = `<span><i class="fas fa-route" style="color:var(--accent); font-size:0.8rem; margin-right:5px;"></i> ${rName}</span> ${actionsHtml}`;
+          
+          rItem.onclick = () => {
+            document.querySelectorAll('.ramal-item').forEach(i => i.classList.remove('active'));
+            rItem.classList.add('active');
+            document.getElementById('selection-status').innerHTML = `${lName} <span style="color:#666">/</span> ${rName}`;
+            loadRamalMap(cat, lName, rName);
+          };
+          ramalList.appendChild(rItem);
+        });
+      }
+
+      if(appMode === 'editor') {
+        const addBtn = document.createElement('button');
+        addBtn.innerText = "+ Agregar Ramal";
+        addBtn.style.cssText = "margin-top:5px; background:none; border:1px dashed #aaa; color:#555; width:100%; padding:5px; border-radius:4px; cursor:pointer;";
+        addBtn.onclick = (e) => { e.stopPropagation(); openCreateRamalModal(lName); };
+        ramalList.appendChild(addBtn);
+      }
+      container.appendChild(ramalList);
+    }
+
+    function loadRamalMap(cat, line, ramal) {
+      editingRamal = ramal;
+      stopBusAnimation();
+
+      const data = db[currentProvince][cat][line][ramal];
+      drawnItems.clearLayers();
+      itemsToDelete = [];
+      updateDeleteCount();
+
+      if(data) {
+        L.geoJSON(data, {
+          pointToLayer: function(feature, latlng) {
+            const m = L.marker(latlng, { icon: pIcon });
+            setupMarkerPopup(m, feature.properties.name);
+            return m;
+          },
+          style: { color: 'red', weight: 4 },
+          onEachFeature: (feature, layer) => {
+              setupLayerEvents(layer);
+              drawnItems.addLayer(layer);
+          }
+        });
+        if(drawnItems.getLayers().length > 0) map.fitBounds(drawnItems.getBounds());
+        startBusAnimation(data);
+      }
+      
+      if(appMode === 'editor') {
+        if(!drawControl._map) map.addControl(drawControl);
+      } else {
+        if(drawControl._map) drawControl.remove();
+      }
+      document.getElementById('save-draw-btn').style.display = 'none';
+      
+      // En móvil, minimizar panel automáticamente al seleccionar para ver mapa
+      if(window.innerWidth < 768) {
+         resizablePanel.style.height = "25vh"; 
+         map.invalidateSize();
+      }
+    }
+
+    function stopBusAnimation() {
+        if (busMarker) {
+            map.removeLayer(busMarker);
+            busMarker = null;
+            busArrowElement = null;
+        }
+        if (busAnimationId) {
+            cancelAnimationFrame(busAnimationId);
+            busAnimationId = null;
+        }
+    }
+
+    function getAngle(lat1, lng1, lat2, lng2) {
+        const dLon = (lng2 - lng1);
+        const y = Math.sin(dLon) * Math.cos(lat2);
+        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+        const brng = Math.atan2(y, x) * 180 / Math.PI;
+        return (brng + 360) % 360;
+    }
+
+    function startBusAnimation(geoJSON) {
+        if(!geoJSON || !geoJSON.features) return;
+        let latlngs = [];
+        geoJSON.features.forEach(f => {
+            if (f.geometry.type === "LineString") {
+                const coords = f.geometry.coordinates.map(c => [c[1], c[0]]);
+                latlngs = latlngs.concat(coords);
+            }
+        });
+
+        if (latlngs.length < 2) return;
+        busMarker = L.marker(latlngs[0], {icon: busIcon, pane: 'busPane'}).addTo(map);
+
+        setTimeout(() => {
+            const el = busMarker.getElement();
+            if(el) busArrowElement = el.querySelector('#activeBusArrow');
+        }, 100);
+
+        let currentIndex = 0;
+        let progress = 0;
+        const speedMetersPerFrame = 15; 
+
+        function animate() {
+            if (!busMarker) return;
+            const p1 = L.latLng(latlngs[currentIndex]);
+            const p2 = L.latLng(latlngs[currentIndex + 1]);
+            const dist = map.distance(p1, p2);
+            const step = (dist > 0) ? speedMetersPerFrame / dist : 1;
+            progress += step;
+
+            if (progress >= 1) {
+                progress = 0;
+                currentIndex++;
+                if (currentIndex >= latlngs.length - 1) currentIndex = 0; 
+            } else {
+                const lat = p1.lat + (p2.lat - p1.lat) * progress;
+                const lng = p1.lng + (p2.lng - p1.lng) * progress;
+                busMarker.setLatLng([lat, lng]);
+
+                if(busArrowElement) {
+                    const angle = getAngle(
+                        p1.lat * Math.PI / 180, p1.lng * Math.PI / 180, 
+                        p2.lat * Math.PI / 180, p2.lng * Math.PI / 180
+                    );
+                    busArrowElement.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+                }
+            }
+            busAnimationId = requestAnimationFrame(animate);
+        }
+        animate();
+    }
+
+    // --- CRUD ---
+    function showCreateOptions() {
+      document.getElementById('newLineName').value = '';
+      document.getElementById('modalCreateLine').style.display = 'flex';
+    }
+
+    function confirmCreateLine() {
+      const name = document.getElementById('newLineName').value.trim();
+      const cat = document.getElementById('newLineCategory').value;
+      if(!name) return alert('Ingresa un nombre');
+      if(db[currentProvince][cat][name]) return alert('Ya existe esa línea');
+
+      db[currentProvince][cat][name] = {}; 
+      saveDB();
+      closeModals();
+      renderCategories();
+    }
+
+    function openCreateRamalModal(lineName) {
+      document.getElementById('targetLineName').innerText = lineName;
+      document.getElementById('newRamalName').value = '';
+      document.getElementById('modalCreateRamal').style.display = 'flex';
+    }
+
+    function confirmCreateRamal() {
+      const rName = document.getElementById('newRamalName').value.trim();
+      if(!rName) return;
+      const cat = selectedLine.category;
+      const lName = selectedLine.name;
+      if(db[currentProvince][cat][lName][rName]) return alert('Ya existe el ramal');
+      db[currentProvince][cat][lName][rName] = null;
+      saveDB();
+      closeModals();
+      const container = document.getElementById(`ramals-${cat}-${lName}`.replace(/\s/g,''));
+      if(container) {
+          container.style.display = 'block';
+          renderRamales(cat, lName, container);
+      }
+    }
+
+    function openCopyModal(ramal, line, cat) {
+        document.getElementById('copySourceRamal').innerText = ramal;
+        document.getElementById('copySourceLine').value = line;
+        document.getElementById('copySourceCat').value = cat;
+        document.getElementById('copyNewName').value = '';
+        const select = document.getElementById('copyTargetLineSelect');
+        select.innerHTML = '';
+        const cats = ["Urbano", "InterUrbano", "Rural"];
+        cats.forEach(c => {
+            const lines = db[currentProvince][c];
+            Object.keys(lines).forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = JSON.stringify({cat: c, line: l});
+                opt.text = `[${c}] ${l}`;
+                if(c === cat && l === line) opt.selected = true;
+                select.add(opt);
+            });
+        });
+        document.getElementById('modalCopyRamal').style.display = 'flex';
+    }
+
+    function confirmCopyRamal() {
+        const sourceRamal = document.getElementById('copySourceRamal').innerText;
+        const sourceLine = document.getElementById('copySourceLine').value;
+        const sourceCat = document.getElementById('copySourceCat').value;
+        const targetJson = JSON.parse(document.getElementById('copyTargetLineSelect').value);
+        let newName = document.getElementById('copyNewName').value.trim();
+        if(!newName) newName = sourceRamal + " (Copia)";
+        const targetCat = targetJson.cat;
+        const targetLine = targetJson.line;
+
+        if(db[currentProvince][targetCat][targetLine][newName]) return alert("Ya existe un ramal con ese nombre.");
+        const dataToCopy = db[currentProvince][sourceCat][sourceLine][sourceRamal];
+        db[currentProvince][targetCat][targetLine][newName] = dataToCopy ? JSON.parse(JSON.stringify(dataToCopy)) : null;
+        saveDB();
+        closeModals();
+        alert('Ramal copiado exitosamente.');
+        renderCategories(); 
+    }
+
+    function openRenameModal(type, oldName, cat, parentLine) {
+      document.getElementById('renameType').value = type;
+      document.getElementById('renameOldName').value = oldName;
+      document.getElementById('renameCat').value = cat;
+      if(parentLine) document.getElementById('renameParentLine').value = parentLine;
+      document.getElementById('renameNewName').value = oldName;
+      document.getElementById('modalRename').style.display = 'flex';
+    }
+
+    function confirmRename() {
+      const type = document.getElementById('renameType').value;
+      const oldName = document.getElementById('renameOldName').value;
+      const newName = document.getElementById('renameNewName').value.trim();
+      const cat = document.getElementById('renameCat').value;
+      
+      if(!newName) return alert("Nombre inválido");
+      if(newName === oldName) return closeModals();
+
+      if(type === 'line') {
+        if(db[currentProvince][cat][newName]) return alert("Ya existe una línea con ese nombre");
+        db[currentProvince][cat][newName] = db[currentProvince][cat][oldName];
+        delete db[currentProvince][cat][oldName];
+        if(selectedLine && selectedLine.name === oldName) selectedLine.name = newName;
+      } else {
+        const pLine = document.getElementById('renameParentLine').value;
+        if(db[currentProvince][cat][pLine][newName]) return alert("Ya existe ese ramal");
+        db[currentProvince][cat][pLine][newName] = db[currentProvince][cat][pLine][oldName];
+        delete db[currentProvince][cat][pLine][oldName];
+        if(editingRamal === oldName) editingRamal = newName;
+      }
+      saveDB();
+      closeModals();
+      renderCategories();
+    }
+
+    function deleteLine(cat, name) {
+      if(confirm(`¿Eliminar línea "${name}" y todos sus ramales?`)) {
+        delete db[currentProvince][cat][name];
+        if(selectedLine && selectedLine.name === name) {
+          selectedLine = null; editingRamal = null; drawnItems.clearLayers();
+          document.getElementById('selection-status').innerText = "Selecciona una línea";
+        }
+        saveDB();
+        renderCategories();
+      }
+    }
+
+    function deleteRamal(cat, line, ramal) {
+      if(confirm(`¿Eliminar ramal "${ramal}"?`)) {
+        delete db[currentProvince][cat][line][ramal];
+        if(editingRamal === ramal) {
+          editingRamal = null; drawnItems.clearLayers(); stopBusAnimation();
+          document.getElementById('selection-status').innerText = line;
+        }
+        saveDB();
+        const container = document.getElementById(`ramals-${cat}-${line}`.replace(/\s/g,''));
+        renderRamales(cat, line, container);
+      }
+    }
+
+    function openExportModal() {
+      const select = document.getElementById('exportLineSelect');
+      select.innerHTML = '<option value="">-- Seleccionar --</option>';
+      const provData = db[currentProvince];
+      ["Urbano", "InterUrbano", "Rural"].forEach(cat => {
+        Object.keys(provData[cat]).forEach(lineName => {
+          const opt = document.createElement('option');
+          opt.value = JSON.stringify({cat, lineName});
+          opt.text = `[${cat}] ${lineName}`;
+          select.add(opt);
+        });
+      });
+      document.getElementById('exportOutput').value = '';
+      document.getElementById('modalExport').style.display = 'flex';
+    }
+
+    function getExportData() {
+        const val = document.getElementById('exportLineSelect').value;
+        if(!val) return null;
+        const { cat, lineName } = JSON.parse(val);
+        const lineData = db[currentProvince][cat][lineName];
+        return {
+            type: "RedBusLine",
+            province: currentProvince,
+            category: cat,
+            name: lineName,
+            ramales: lineData
+        };
+    }
+
+    function downloadJSON() {
+        const data = getExportData();
+        if(!data) return alert("Selecciona una línea primero");
+        const jsonStr = JSON.stringify(data, null, 2);
+        document.getElementById('exportOutput').value = jsonStr;
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Linea_${data.name.replace(/\s/g,'_')}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function openImportModal() {
+      document.getElementById('importInput').value = '';
+      document.getElementById('importFileInput').value = '';
+      document.getElementById('modalImport').style.display = 'flex';
+    }
+
+    function readJSONFile(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('importInput').value = e.target.result;
+            };
+            reader.readAsText(input.files[0]);
+        }
+    }
+
+    function confirmImport() {
+      try {
+        const raw = document.getElementById('importInput').value;
+        if(!raw) return alert("El contenido está vacío");
+        const data = JSON.parse(raw);
+        if(data.type !== "RedBusLine" || !data.ramales) throw new Error("Formato incorrecto o archivo no válido");
+        const targetCat = data.category || "Urbano";
+        const targetName = data.name;
+        if(!db[currentProvince][targetCat]) db[currentProvince][targetCat] = {};
+        if(db[currentProvince][targetCat][targetName]) {
+          if(!confirm(`La línea ${targetName} ya existe. ¿Sobreescribir?`)) return;
+        }
+        db[currentProvince][targetCat][targetName] = data.ramales;
+        saveDB();
+        closeModals();
+        alert(`Línea importada con éxito.`);
+        renderCategories();
+      } catch(e) {
+        alert("Error al importar: " + e.message);
+      }
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+    }
+
+    function saveDB() {
+      localStorage.setItem('redbus_sim_db', JSON.stringify(db));
+    }
+  </script>
+</body>
+</html>
