@@ -1,0 +1,2483 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Bus Creator – 4.5</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Bus Creator es una herramienta interactiva para crear, editar y visualizar líneas de bus en un mapa. Diseña recorridos, agrega paradas y simula el movimiento de los buses en tiempo real." />
+  <meta name="keywords" content="bus creator, líneas de bus, simulador bus, mapa transporte, bus route planner, Tucumán" />
+  <meta name="author" content="Bus Creator" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0f0f14" />
+  <link rel="canonical" href="https://mmmanda.github.io/buscreator/version/45.html" />
+
+  <!-- Open Graph (Facebook / LinkedIn / WhatsApp) -->
+  <meta property="og:title" content="Bus Creator – Diseña líneas de bus en el mapa" />
+  <meta property="og:description" content="Crea, edita y visualiza líneas de bus interactivas. Agrega paradas, diseña recorridos y observa los buses moverse en tiempo real sobre el mapa." />
+  <meta property="og:image" content="https://mmmanda.github.io/buscreator/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://mmmanda.github.io/buscreator/version/45.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Bus Creator" />
+  <meta property="og:locale" content="es_AR" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:locale:alternate" content="pt_BR" />
+  <meta property="og:locale:alternate" content="ru_RU" />
+  <meta property="og:locale:alternate" content="de_DE" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Bus Creator – Diseña líneas de bus en el mapa" />
+  <meta name="twitter:description" content="Crea, edita y visualiza líneas de bus interactivas con paradas y animaciones en tiempo real." />
+  <meta name="twitter:image" content="https://mmmanda.github.io/buscreator/og-image.png" />
+
+  <!-- Schema.org / JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Bus Creator",
+    "url": "https://mmmanda.github.io/buscreator/version/45.html",
+    "description": "Herramienta interactiva para crear y visualizar líneas de bus en mapas.",
+    "applicationCategory": "UtilityApplication",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <!-- Favicon placeholder -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a1a2e'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='18' fill='%23e94560'%3E🚌%3C/text%3E%3C/svg%3E" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+
+  <style>
+    /* ============================================================
+       TOKENS & PALETA — Tema Cyber-Industrial Mejorado (Gemini)
+       ============================================================ */
+    :root {
+      --bg-deep:      #0b0b0f;
+      --bg-surface:   #14141a;
+      --bg-raised:    #1f1f29;
+      --bg-hover:     #2a2a35;
+      --border:       #2e2e3e;
+      --text-primary: #f0f0f5;
+      --text-secondary:#9a9ab0;
+      --text-muted:   #5f5f70;
+      --accent:       #ff3b5c;
+      --accent-dim:   rgba(255, 59, 92, 0.15);
+      --accent-glow:  rgba(255, 59, 92, 0.4);
+      --teal:         #00f0c0;
+      --teal-dim:     rgba(0, 240, 192, 0.12);
+      --gold:         #f0a500;
+      --gold-dim:     rgba(240,165,0,0.12);
+      --stop-color:   #f0a500;
+      --bus-color:    #00f0c0;
+      --radius:       12px;
+      --radius-sm:    8px;
+      --shadow:       0 8px 32px rgba(0,0,0,0.5);
+      --shadow-sm:    0 4px 12px rgba(0,0,0,0.3);
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'Inter', sans-serif;
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Scrollbars modernos (Gemini) */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* ============================================================
+       HOME SCREEN — Mejorado (Claude + Gemini)
+       ============================================================ */
+    #home-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-deep);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 20px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Fondo abstracto mejorado (Gemini + Claude) */
+    #home-screen::before {
+      content: '';
+      position: absolute;
+      width: 150vw; height: 150vw;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,59,92,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 20% 80%, rgba(0,240,192,0.06) 0%, transparent 60%),
+        radial-gradient(circle at 80% 20%, rgba(240,165,0,0.03) 0%, transparent 50%);
+      top: -50%; left: -25%;
+      animation: pulseBg 10s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    @keyframes pulseBg { 
+      0% { opacity: 0.5; transform: scale(1); } 
+      100% { opacity: 1; transform: scale(1.1); } 
+    }
+
+    /* Language Switcher mejorado (Claude) */
+    .lang-selector-home {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      z-index: 10;
+    }
+    .lang-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid var(--border);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .lang-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--teal) 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .lang-btn:hover { 
+      background: var(--bg-hover); 
+      color: var(--text-primary);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255,59,92,0.2);
+    }
+    .lang-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+    .lang-btn.active::before { opacity: 1; }
+    .lang-flag { font-size: 1rem; line-height: 1; }
+    
+    /* Focus styles (ChatGPT) */
+    .lang-btn:focus, .menu-card:focus, .btn:focus { 
+      outline: 2px solid var(--accent); 
+      outline-offset: 2px; 
+    }
+
+    .home-hero {
+      text-align: center;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Logo mejorado con animaciones (Claude) */
+    .logo-badge {
+      width: 88px; height: 88px;
+      background: linear-gradient(135deg, var(--bg-raised), var(--bg-surface));
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: var(--shadow);
+      font-size: 2.5rem;
+      color: var(--accent);
+      position: relative;
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .logo-badge::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 2px dashed var(--accent);
+      opacity: 0.4;
+      animation: spin 18s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .logo-badge i {
+      filter: drop-shadow(0 0 12px var(--accent-glow));
+      animation: iconPulse 2s ease-in-out infinite;
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .home-hero h1 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+      background: linear-gradient(to right, #fff, var(--text-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .home-hero p { 
+      color: var(--text-secondary); 
+      max-width: 300px; 
+      margin: 0 auto; 
+      line-height: 1.6; 
+      font-size: 0.9rem; 
+    }
+
+    /* Stats pill (Gemini) */
+    .stats-pill {
+      margin-top: 15px;
+      display: inline-block;
+      padding: 6px 14px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--teal);
+      font-family: var(--font-body);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 400px;
+      z-index: 2;
+      margin-bottom: 24px;
+    }
+
+    .menu-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .25s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .menu-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--card-color, var(--accent));
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    
+    .menu-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--card-color);
+      box-shadow: 0 10px 30px -10px var(--card-glow);
+    }
+    .menu-card:hover::before { opacity: 1; }
+    
+    .menu-card:nth-child(1) { --card-color: var(--accent); --card-glow: var(--accent-glow); }
+    .menu-card:nth-child(2) { --card-color: var(--teal); --card-glow: var(--teal-dim); }
+    .menu-card:nth-child(3) { --card-color: var(--gold); --card-glow: var(--gold-dim); }
+    .menu-card:nth-child(4) { --card-color: #7c6bff; --card-glow: rgba(124,107,255,0.2); }
+    
+    .menu-card i { 
+      font-size: 1.6rem; 
+      color: var(--card-color); 
+      margin-bottom: 5px; 
+    }
+    .menu-card span { 
+      font-weight: 600; 
+      font-size: 0.85rem; 
+      color: var(--text-primary); 
+    }
+
+    /* Botón de guía inicial */
+    .guide-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255,59,92,0.4);
+      transition: all 0.3s;
+      z-index: 2500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+
+    .guide-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 30px rgba(255,59,92,0.6);
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 4px 20px rgba(255,59,92,0.4); }
+      50% { box-shadow: 0 4px 30px rgba(255,59,92,0.8); }
+    }
+
+    /* Home actions (ChatGPT) */
+    #home-actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      width: 100%;
+      max-width: 420px;
+      z-index: 2;
+    }
+
+    #home-actions .btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    #home-actions .btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--accent);
+    }
+
+    /* ============================================================
+       APP LAYOUT
+       ============================================================ */
+    #app-interface {
+      display: none;
+      height: 100%; 
+      width: 100%;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      height: 60px;
+      display: flex; 
+      align-items: center; 
+      gap: 16px;
+      flex-shrink: 0; 
+      z-index: 100;
+    }
+    
+    .back-btn {
+      width: 36px; 
+      height: 36px;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--bg-raised);
+      color: var(--text-secondary);
+      cursor: pointer; 
+      transition: .2s;
+      border: none;
+    }
+    .back-btn:hover { 
+      color: #fff; 
+      background: var(--bg-hover); 
+    }
+
+    header h2 { 
+      font-family: var(--font-display); 
+      font-size: 1.1rem; 
+      flex: 1; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
+
+    .action-btn {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: .2s;
+      font-family: var(--font-body);
+    }
+    .action-btn:hover { 
+      background: var(--bg-hover); 
+      border-color: var(--accent); 
+    }
+    .action-btn.primary { 
+      background: var(--teal); 
+      color: #fff; 
+      border-color: var(--teal); 
+    }
+    .action-btn.primary:hover { 
+      filter: brightness(1.15); 
+    }
+    .action-btn.danger { 
+      background: var(--accent); 
+      color: #fff; 
+      border-color: var(--accent); 
+    }
+    
+    .action-btn.danger.active {
+      background: #d32f2f;
+      border: 2px solid #ffcdd2;
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); }
+      50% { box-shadow: 0 0 0 10px rgba(211, 47, 47, 0); }
+    }
+
+    /* ============================================================
+       MAP CONTAINER
+       ============================================================ */
+    #map-container {
+      flex-grow: 1;
+      position: relative;
+      width: 100%;
+      min-height: 0;
+      display: flex;
+    }
+    #map { 
+      width: 100%; 
+      height: 100%; 
+    }
+
+    /* Leaflet dark tile filter (Claude) */
+    .leaflet-tile-pane { 
+      filter: brightness(0.85) saturate(0.7); 
+    }
+
+    /* FAB Stack mejorado (Gemini) */
+    .fab-stack {
+      position: absolute;
+      bottom: 24px; 
+      right: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 2000;
+      pointer-events: none;
+    }
+    
+    .fab {
+      width: 52px; 
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      pointer-events: auto;
+    }
+    .fab:active { transform: scale(0.92); }
+    
+    .fab.main {
+      background: var(--accent);
+      color: #fff;
+    }
+    .fab.main:hover { 
+      box-shadow: 0 4px 20px var(--accent-glow); 
+    }
+    
+    .fab:not(.main) {
+      background: var(--bg-raised);
+      color: var(--teal);
+      border: 1px solid var(--border);
+    }
+    .fab:not(.main):hover { 
+      border-color: var(--teal); 
+    }
+
+    /* ============================================================
+       RESIZABLE BOTTOM PANEL (Gemini)
+       ============================================================ */
+    #resizable-panel {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 40vh;
+      min-height: 60px;
+      max-height: 85vh;
+      z-index: 1003;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    #resize-handle {
+      width: 100%;
+      height: 18px;
+      background: var(--bg-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: row-resize;
+      touch-action: none;
+    }
+    #resize-handle::after {
+      content: '';
+      width: 40px; 
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .panel-header {
+      padding: 0 16px 12px;
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .search-bar {
+      position: relative;
+      width: 100%;
+    }
+    .search-bar input {
+      width: 100%;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      padding: 10px 10px 10px 36px;
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+    }
+    .search-bar input:focus { 
+      outline: none; 
+      border-color: var(--teal); 
+    }
+    .search-bar i { 
+      position: absolute; 
+      left: 12px; 
+      top: 50%; 
+      transform: translateY(-50%); 
+      color: var(--text-muted); 
+      font-size: 0.8rem; 
+    }
+
+    #selection-status {
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--teal);
+      font-size: 0.95rem;
+    }
+
+    #bottom-panel-content { 
+      flex: 1; 
+      overflow-y: auto; 
+      padding: 12px 16px; 
+    }
+
+    /* Categorías y Líneas (Gemini) */
+    .cat-group { margin-bottom: 8px; }
+    .cat-header {
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      padding: 12px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 0.75rem; 
+      font-weight: 700; 
+      text-transform: uppercase; 
+      letter-spacing: 0.05em;
+      cursor: pointer; 
+      user-select: none;
+      transition: .2s;
+    }
+    .cat-header:hover { 
+      background: var(--bg-hover); 
+      color: var(--text-primary); 
+    }
+    .cat-header.active { 
+      border-color: var(--border); 
+    }
+    .cat-body { 
+      display: none; 
+      padding-top: 6px; 
+    }
+    .cat-body.show { 
+      display: block; 
+      animation: slideDown 0.2s ease; 
+    }
+    @keyframes slideDown { 
+      from { opacity:0; transform:translateY(-5px) } 
+      to { opacity:1; transform:translateY(0) } 
+    }
+
+    .line-row {
+      display: flex; 
+      flex-direction: column;
+      background: transparent;
+      border-left: 2px solid var(--border);
+      margin-left: 10px; 
+      padding-left: 12px;
+      margin-bottom: 4px;
+    }
+    .line-btn {
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      padding: 8px 0;
+      cursor: pointer;
+      color: var(--text-primary); 
+      font-size: 0.9rem; 
+      font-weight: 500;
+      transition: .2s;
+    }
+    .line-btn:hover { color: var(--teal); }
+    .line-btn .meta { 
+      font-size: 0.7rem; 
+      color: var(--text-muted); 
+      margin-left: 8px; 
+      font-weight: 400; 
+    }
+
+    .ramal-container { 
+      padding-left: 10px; 
+      display: none; 
+    }
+    .ramal-item {
+      padding: 6px 10px;
+      margin: 2px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      transition: .15s;
+    }
+    .ramal-item:hover { 
+      background: var(--bg-hover); 
+      color: var(--text-primary); 
+    }
+    .ramal-item.active { 
+      background: var(--teal-dim); 
+      color: var(--teal); 
+      font-weight: 600; 
+    }
+
+    .mini-actions { 
+      opacity: 0; 
+      transition: opacity .2s; 
+      display: flex; 
+      gap: 8px; 
+    }
+    .line-btn:hover .mini-actions, 
+    .ramal-item:hover .mini-actions { 
+      opacity: 1; 
+    }
+    .mini-actions i { 
+      font-size: 0.75rem; 
+      cursor: pointer; 
+      color: var(--text-muted); 
+    }
+    .mini-actions i:hover { 
+      color: var(--accent); 
+    }
+
+    /* ============================================================
+       MODALES & TOASTS (Gemini)
+       ============================================================ */
+    .modal-overlay {
+      position: fixed; 
+      inset: 0;
+      background: rgba(0,0,0,0.8); 
+      backdrop-filter: blur(4px);
+      z-index: 3000;
+      display: none; 
+      align-items: center; 
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      width: 100%; 
+      max-width: 380px;
+      padding: 24px; 
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn { 
+      from { transform:scale(0.9); opacity:0 } 
+      to { transform:scale(1); opacity:1 } 
+    }
+
+    .modal-box h3 { 
+      font-family: var(--font-display); 
+      margin-bottom: 16px; 
+      font-size: 1.2rem; 
+    }
+
+    .input-group { 
+      margin-bottom: 16px; 
+    }
+    .input-group label { 
+      display: block; 
+      font-size: 0.75rem; 
+      color: var(--text-secondary); 
+      margin-bottom: 6px; 
+      font-weight: 600; 
+    }
+    .input-group input, 
+    .input-group select, 
+    .input-group textarea {
+      width: 100%; 
+      padding: 10px;
+      background: var(--bg-deep); 
+      border: 1px solid var(--border);
+      border-radius: 8px; 
+      color: #fff; 
+      font-family: var(--font-body);
+    }
+    .input-group input:focus { 
+      outline: none; 
+      border-color: var(--teal); 
+    }
+
+    .modal-footer { 
+      display: flex; 
+      justify-content: flex-end; 
+      gap: 10px; 
+      margin-top: 20px; 
+    }
+
+    /* Toast Notifications (Gemini) */
+    #toast-container {
+      position: fixed; 
+      bottom: 20px; 
+      left: 50%; 
+      transform: translateX(-50%);
+      z-index: 4000; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px;
+      pointer-events: none; 
+      width: 90%; 
+      max-width: 350px;
+    }
+    .toast {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      box-shadow: var(--shadow);
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+      animation: slideUpFade 0.3s ease forwards;
+      pointer-events: auto;
+    }
+    .toast.success { border-left: 4px solid var(--teal); }
+    .toast.error { border-left: 4px solid var(--accent); }
+    .toast i { font-size: 1rem; }
+    .toast.success i { color: var(--teal); }
+    .toast.error i { color: var(--accent); }
+    @keyframes slideUpFade { 
+      from { transform:translateY(20px); opacity:0 } 
+      to { transform:translateY(0); opacity:1 } 
+    }
+
+    /* Overrides Leaflet Draw (Gemini) */
+    .leaflet-draw-toolbar a { 
+      background-color: var(--bg-raised) !important; 
+      border-color: var(--border) !important; 
+      color: #fff !important; 
+    }
+    .leaflet-draw-toolbar a:hover { 
+      background-color: var(--bg-hover) !important; 
+    }
+    .leaflet-draw-actions { 
+      left: 34px !important; 
+    }
+    .leaflet-draw-actions li a { 
+      background-color: var(--bg-surface) !important; 
+      color: #fff !important; 
+      border-color: var(--border) !important; 
+    }
+
+    /* ============================================================
+       PANEL DE GUÍA INICIAL
+       ============================================================ */
+    #guide-panel {
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 320px;
+      height: 100vh;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      z-index: 3500;
+      overflow-y: auto;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+    }
+
+    #guide-panel.open {
+      left: 0;
+    }
+
+    .guide-header {
+      padding: 20px;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .guide-header h2 {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .guide-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 30px;
+      height: 30px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .guide-close:hover {
+      background: rgba(255,255,255,0.3);
+      transform: rotate(90deg);
+    }
+
+    .guide-content {
+      padding: 20px;
+    }
+
+    .guide-section {
+      margin-bottom: 24px;
+    }
+
+    .guide-section h3 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--teal);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-section h3 i {
+      font-size: 1.2rem;
+    }
+
+    .guide-section p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .guide-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .guide-list li {
+      padding: 10px;
+      margin-bottom: 8px;
+      background: var(--bg-raised);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .guide-list li i {
+      color: var(--accent);
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .guide-shortcut {
+      background: var(--bg-deep);
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .guide-shortcut-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .guide-shortcut-key {
+      background: var(--bg-raised);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      color: var(--teal);
+      border: 1px solid var(--border);
+    }
+
+    /* Overlay para cerrar el panel al hacer clic fuera */
+    #guide-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 3400;
+      display: none;
+    }
+
+    #guide-overlay.visible {
+      display: block;
+    }
+
+    /* Responsive */
+    @media (max-width: 420px) { 
+      .menu-grid { 
+        grid-template-columns: 1fr 1fr; 
+        gap: 10px; 
+      }
+      #guide-panel {
+        width: 90%;
+        max-width: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Toast Container (Gemini) -->
+<div id="toast-container"></div>
+
+<!-- Guide Overlay -->
+<div id="guide-overlay" onclick="toggleGuide()"></div>
+
+<!-- Panel de Guía Inicial -->
+<div id="guide-panel">
+  <div class="guide-header">
+    <h2><i class="fas fa-book-open"></i> Guía de Uso</h2>
+    <button class="guide-close" onclick="toggleGuide()" aria-label="Cerrar guía">
+      <i class="fas fa-times"></i>
+    </button>
+    <p style="font-size: 0.85rem; opacity: 0.9; margin: 0;">Aprende a usar Bus Creator</p>
+  </div>
+  
+  <div class="guide-content">
+    <div class="guide-section">
+      <h3><i class="fas fa-rocket"></i> Inicio Rápido</h3>
+      <p>Bienvenido a Bus Creator. Esta herramienta te permite crear y visualizar líneas de transporte público de manera interactiva.</p>
+      <ul class="guide-list">
+        <li><i class="fas fa-circle"></i> <strong>Editor:</strong> Crea y edita líneas de bus</li>
+        <li><i class="fas fa-circle"></i> <strong>Visor:</strong> Visualiza rutas sin editar</li>
+        <li><i class="fas fa-circle"></i> <strong>Exportar:</strong> Guarda tus líneas en JSON</li>
+        <li><i class="fas fa-circle"></i> <strong>Importar:</strong> Carga líneas existentes</li>
+      </ul>
+    </div>
+
+    <div class="guide-section">
+      <h3><i class="fas fa-edit"></i> Crear Líneas</h3>
+      <p>Pasos para crear una nueva línea:</p>
+      <ul class="guide-list">
+        <li><i class="fas fa-1"></i> Haz clic en el botón <strong>+</strong> flotante</li>
+        <li><i class="fas fa-2"></i> Ingresa el nombre y empresa</li>
+        <li><i class="fas fa-3"></i> Selecciona el tipo de servicio</li>
+        <li><i class="fas fa-4"></i> Dibuja la ruta en el mapa</li>
+        <li><i class="fas fa-5"></i> Guarda los cambios</li>
+      </ul>
+    </div>
+
+    <div class="guide-section">
+      <h3><i class="fas fa-map"></i> Herramientas del Mapa</h3>
+      <ul class="guide-list">
+        <li><i class="fas fa-pencil-alt"></i> Dibuja líneas en el mapa</li>
+        <li><i class="fas fa-map-marker-alt"></i> Añade paradas con marcadores</li>
+        <li><i class="fas fa-edit"></i> Edita rutas existentes</li>
+        <li><i class="fas fa-trash"></i> Elimina elementos</li>
+        <li><i class="fas fa-location-arrow"></i> Ubícate en el mapa</li>
+      </ul>
+    </div>
+
+    <div class="guide-section">
+      <h3><i class="fas fa-keyboard"></i> Atajos de Teclado</h3>
+      <div class="guide-shortcut">
+        <div class="guide-shortcut-item">
+          <span>Ir a inicio</span>
+          <span class="guide-shortcut-key">H</span>
+        </div>
+        <div class="guide-shortcut-item">
+          <span>Abrir editor</span>
+          <span class="guide-shortcut-key">E</span>
+        </div>
+        <div class="guide-shortcut-item">
+          <span>Abrir visor</span>
+          <span class="guide-shortcut-key">V</span>
+        </div>
+        <div class="guide-shortcut-item">
+          <span>Cambiar idioma (1-5)</span>
+          <span class="guide-shortcut-key">1-5</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <h3><i class="fas fa-lightbulb"></i> Consejos</h3>
+      <ul class="guide-list">
+        <li><i class="fas fa-star"></i> Usa nombres descriptivos para tus líneas</li>
+        <li><i class="fas fa-star"></i> Guarda frecuentemente tus cambios</li>
+        <li><i class="fas fa-star"></i> Exporta regularmente para backup</li>
+        <li><i class="fas fa-star"></i> Usa el buscador para encontrar líneas rápido</li>
+        <li><i class="fas fa-star"></i> El panel inferior es redimensionable</li>
+      </ul>
+    </div>
+
+    <div class="guide-section">
+      <h3><i class="fas fa-database"></i> Gestión de Datos</h3>
+      <p>Tus datos se guardan automáticamente en tu navegador. Puedes:</p>
+      <ul class="guide-list">
+        <li><i class="fas fa-download"></i> Exportar todo a un archivo JSON</li>
+        <li><i class="fas fa-upload"></i> Importar desde archivos existentes</li>
+        <li><i class="fas fa-sync"></i> Cargar datos de demostración</li>
+        <li><i class="fas fa-trash-alt"></i> Borrar todos los datos</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- HOME SCREEN -->
+<div id="home-screen">
+  <!-- Language Switcher (solo en home) -->
+  <div class="lang-selector-home">
+    <button class="lang-btn active" onclick="setLang('es')" aria-label="Español">
+      <span class="lang-flag">🇪🇸</span> ES
+    </button>
+    <button class="lang-btn" onclick="setLang('en')" aria-label="English">
+      <span class="lang-flag">🇬🇧</span> EN
+    </button>
+    <button class="lang-btn" onclick="setLang('pt')" aria-label="Português">
+      <span class="lang-flag">🇧🇷</span> PT
+    </button>
+    <button class="lang-btn" onclick="setLang('ru')" aria-label="Русский">
+      <span class="lang-flag">🇷🇺</span> RU
+    </button>
+    <button class="lang-btn" onclick="setLang('de')" aria-label="Deutsch">
+      <span class="lang-flag">🇩🇪</span> DE
+    </button>
+  </div>
+
+  <div class="home-hero">
+    <div class="logo-badge">
+      <i class="fas fa-bus-alt"></i>
+    </div>
+    <h1>Bus Creator</h1>
+    <p data-i18n="home.subtitle">Diseña, edita y simula recorridos de transporte.</p>
+    <div class="stats-pill" id="home-stats-pill">
+      <i class="fas fa-database"></i>
+      <span>Cargando datos...</span>
+    </div>
+  </div>
+
+  <div class="menu-grid">
+    <div class="menu-card" onclick="openApp('editor')" tabindex="0" role="button" aria-label="Abrir editor">
+      <i class="fas fa-pen-nib"></i>
+      <span data-i18n="home.editor">Editor</span>
+    </div>
+    <div class="menu-card" onclick="openApp('viewer')" tabindex="0" role="button" aria-label="Abrir visor">
+      <i class="fas fa-map"></i>
+      <span data-i18n="home.viewer">Visor</span>
+    </div>
+    <div class="menu-card" onclick="openExportModal()" tabindex="0" role="button" aria-label="Exportar">
+      <i class="fas fa-file-export"></i>
+      <span data-i18n="home.export">Exportar</span>
+    </div>
+    <div class="menu-card" onclick="openImportModal()" tabindex="0" role="button" aria-label="Importar">
+      <i class="fas fa-file-import"></i>
+      <span data-i18n="home.import">Importar</span>
+    </div>
+  </div>
+
+  <!-- Home Actions (ChatGPT) -->
+  <div id="home-actions">
+    <button class="btn" onclick="seedDemoData()" aria-label="Cargar datos de ejemplo">
+      <i class="fas fa-magic"></i> Cargar demo
+    </button>
+    <button class="btn" onclick="clearDataConfirm()" aria-label="Borrar datos">
+      <i class="fas fa-trash"></i> Borrar todo
+    </button>
+  </div>
+
+  <!-- Botón de guía flotante -->
+  <button class="guide-btn" onclick="toggleGuide()" aria-label="Abrir guía de uso">
+    <i class="fas fa-question"></i>
+  </button>
+</div>
+
+<!-- APP INTERFACE -->
+<div id="app-interface" aria-hidden="true">
+  <header>
+    <button class="back-btn" onclick="goHome()" aria-label="Volver">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h2 id="app-title"></h2>
+
+    <button id="delete-multi-btn" class="action-btn danger" onclick="toggleMultiDelete()">
+      <i class="fas fa-trash-alt"></i> Borrar (<span id="delete-count">0</span>)
+    </button>
+    <button id="save-draw-btn" class="action-btn primary" onclick="saveCurrentRamalDraw()" style="display:none">
+      <i class="fas fa-save"></i> <span data-i18n="app.save">Guardar</span>
+    </button>
+  </header>
+
+  <div id="map-container">
+    <div id="map" role="application" aria-label="Mapa"></div>
+
+    <div class="fab-stack">
+      <div class="fab" onclick="locateUser()" title="Ubícame" aria-label="Ubicarme en el mapa">
+        <i class="fas fa-location-arrow"></i>
+      </div>
+      <div class="fab main" id="fabCreate" onclick="showCreateOptions()" style="display:none" aria-label="Crear nueva línea">
+        <i class="fas fa-plus"></i>
+      </div>
+    </div>
+  </div>
+
+  <div id="resizable-panel">
+    <div id="resize-handle"></div>
+    <div class="panel-header">
+      <div id="selection-status" data-i18n="app.selectLine">Selecciona una línea</div>
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="lineSearchInput" placeholder="Buscar línea o ramal..." onkeyup="filterLines()">
+      </div>
+    </div>
+    <div id="bottom-panel-content">
+      <div id="categories-container"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalCreateLine">
+  <div class="modal-box">
+    <h3 data-i18n="modal.newLine">Nueva Línea</h3>
+    <div class="input-group">
+      <label data-i18n="modal.lineName">Nombre</label>
+      <input type="text" id="newLineName" placeholder="Ej: Línea 102">
+    </div>
+    <div class="input-group">
+      <label data-i18n="modal.company">Empresa</label>
+      <input type="text" id="newLineCompany" placeholder="Ej: El Corcel S.A.">
+    </div>
+    <div class="input-group">
+      <label data-i18n="modal.serviceType">Servicio</label>
+      <select id="newLineCategory">
+        <option value="Urbano" data-i18n="cat.urban">Urbano</option>
+        <option value="InterUrbano" data-i18n="cat.interurban">Interurbano</option>
+        <option value="Media Distancia" data-i18n="cat.medium">Media Distancia</option>
+        <option value="Larga Distancia" data-i18n="cat.long">Larga Distancia</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <input type="checkbox" id="newLineOfficial">
+        <span data-i18n="modal.official">Línea oficial</span>
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()" data-i18n="modal.cancel">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmCreateLine()" data-i18n="modal.create">Crear</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalCreateRamal">
+  <div class="modal-box">
+    <h3 data-i18n="modal.newBranch">Nuevo Ramal</h3>
+    <div class="input-group">
+      <label data-i18n="modal.branchName">Nombre Ramal</label>
+      <input type="text" id="newRamalName" placeholder="Ej: Ramal Centro">
+    </div>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()" data-i18n="modal.cancel">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmCreateRamal()" data-i18n="modal.create">Crear</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalExport">
+  <div class="modal-box">
+    <h3 data-i18n="modal.exportLines">Exportar Datos</h3>
+    <div id="exportChecklist" style="max-height:200px; overflow-y:auto; border:1px solid var(--border); padding:10px; margin-bottom:15px; border-radius:8px;"></div>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()" data-i18n="modal.close">Cerrar</button>
+      <button class="action-btn primary" onclick="downloadJSON()" data-i18n="modal.downloadJSON">Descargar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalImport">
+  <div class="modal-box">
+    <h3 data-i18n="modal.importLines">Importar Datos</h3>
+    <div class="input-group">
+      <label>Seleccionar archivo JSON</label>
+      <input type="file" id="importFileInput" accept=".json" onchange="readJSONFile(this)">
+    </div>
+    <div class="input-group">
+      <label>O pega el código JSON</label>
+      <textarea id="importInput" rows="4" placeholder="JSON Code..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()" data-i18n="modal.cancel">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmImport()" data-i18n="modal.import">Importar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Renombrar Línea/Ramal -->
+<div class="modal-overlay" id="modalRename">
+  <div class="modal-box">
+    <h3>Editar / Renombrar</h3>
+    <input type="hidden" id="renameType">
+    <input type="hidden" id="renameOldName">
+    <input type="hidden" id="renameCat">
+    <input type="hidden" id="renameParentLine">
+    
+    <div class="input-group">
+      <label>Nombre</label>
+      <input type="text" id="renameNewName">
+    </div>
+    
+    <div id="renameLineFields" style="display:none">
+      <div class="input-group">
+        <label>Empresa</label>
+        <input type="text" id="renameNewCompany">
+      </div>
+      <div class="input-group">
+        <label>Tipo de Servicio (Mover línea)</label>
+        <select id="renameNewCategory">
+          <option value="Urbano">Urbano</option>
+          <option value="InterUrbano">InterUrbano</option>
+          <option value="Media Distancia">Media Distancia</option>
+          <option value="Larga Distancia">Larga Distancia</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="renameNewOfficial"> 
+          <span>Línea Verdadera</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmRename()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Copiar Ramal -->
+<div class="modal-overlay" id="modalCopyRamal">
+  <div class="modal-box">
+    <h3>Copiar Ramal</h3>
+    <p style="font-size:0.9rem; margin-bottom: 15px;">Ramal origen: <b id="copySourceRamal"></b></p>
+    <input type="hidden" id="copySourceLine">
+    <input type="hidden" id="copySourceCat">
+    
+    <div class="input-group">
+      <label>Línea de Destino:</label>
+      <select id="copyTargetLineSelect"></select>
+    </div>
+    
+    <div class="input-group">
+      <label>Nuevo Nombre (Opcional):</label>
+      <input type="text" id="copyNewName" placeholder="Dejar vacío para mantener nombre">
+    </div>
+    
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmCopyRamal()">Copiar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script>
+/* ============================================================
+   I18N DATA - Multiidioma mejorado
+   ============================================================ */
+const i18nData = {
+  es: {
+    "home.subtitle": "Diseña, edita y simula recorridos de transporte.",
+    "home.editor": "Editor", 
+    "home.viewer": "Visor", 
+    "home.export": "Exportar", 
+    "home.import": "Importar",
+    "app.selectLine": "Selecciona una línea", 
+    "app.save": "Guardar", 
+    "cat.urban": "Urbano", 
+    "cat.interurban": "Interurbano", 
+    "cat.medium": "Media Distancia", 
+    "cat.long": "Larga Distancia", 
+    "modal.newLine": "Nueva Línea", 
+    "modal.create": "Crear", 
+    "modal.cancel": "Cancelar", 
+    "modal.lineName": "Nombre", 
+    "modal.company": "Empresa", 
+    "modal.serviceType": "Servicio",
+    "modal.official": "Línea oficial",
+    "modal.newBranch": "Nuevo Ramal", 
+    "modal.branchName": "Nombre Ramal", 
+    "modal.exportLines": "Exportar Datos",
+    "modal.downloadJSON": "Descargar", 
+    "modal.importLines": "Importar Datos", 
+    "modal.import": "Importar", 
+    "modal.close": "Cerrar"
+  },
+  en: {
+    "home.subtitle": "Design, edit and simulate transport routes.",
+    "home.editor": "Editor", 
+    "home.viewer": "Viewer", 
+    "home.export": "Export", 
+    "home.import": "Import",
+    "app.selectLine": "Select a line", 
+    "app.save": "Save", 
+    "cat.urban": "Urban", 
+    "cat.interurban": "Interurban", 
+    "cat.medium": "Medium Dist", 
+    "cat.long": "Long Dist", 
+    "modal.newLine": "New Line", 
+    "modal.create": "Create", 
+    "modal.cancel": "Cancel", 
+    "modal.lineName": "Name", 
+    "modal.company": "Company", 
+    "modal.serviceType": "Service",
+    "modal.official": "Official line",
+    "modal.newBranch": "New Branch", 
+    "modal.branchName": "Branch Name", 
+    "modal.exportLines": "Export Data",
+    "modal.downloadJSON": "Download", 
+    "modal.importLines": "Import Data", 
+    "modal.import": "Import", 
+    "modal.close": "Close"
+  },
+  pt: {
+    "home.subtitle": "Projete, edite e simule rotas de transporte.",
+    "home.editor": "Editor", 
+    "home.viewer": "Visualizador", 
+    "home.export": "Exportar", 
+    "home.import": "Importar",
+    "app.selectLine": "Selecione uma linha", 
+    "app.save": "Salvar", 
+    "cat.urban": "Urbano", 
+    "cat.interurban": "Interurbano", 
+    "cat.medium": "Média Dist", 
+    "cat.long": "Longa Dist", 
+    "modal.newLine": "Nova Linha", 
+    "modal.create": "Criar", 
+    "modal.cancel": "Cancelar", 
+    "modal.lineName": "Nome", 
+    "modal.company": "Empresa", 
+    "modal.serviceType": "Serviço",
+    "modal.official": "Linha oficial",
+    "modal.newBranch": "Novo Ramal", 
+    "modal.branchName": "Nome do Ramal", 
+    "modal.exportLines": "Exportar Dados",
+    "modal.downloadJSON": "Baixar", 
+    "modal.importLines": "Importar Dados", 
+    "modal.import": "Importar", 
+    "modal.close": "Fechar"
+  },
+  ru: {
+    "home.subtitle": "Создавайте, редактируйте и симулируйте маршруты транспорта.",
+    "home.editor": "Редактор", 
+    "home.viewer": "Просмотр", 
+    "home.export": "Экспорт", 
+    "home.import": "Импорт",
+    "app.selectLine": "Выберите линию", 
+    "app.save": "Сохранить", 
+    "cat.urban": "Городской", 
+    "cat.interurban": "Пригородный", 
+    "cat.medium": "Средн. дист", 
+    "cat.long": "Дальн. дист", 
+    "modal.newLine": "Новая линия", 
+    "modal.create": "Создать", 
+    "modal.cancel": "Отмена", 
+    "modal.lineName": "Название", 
+    "modal.company": "Компания", 
+    "modal.serviceType": "Сервис",
+    "modal.official": "Официальная линия",
+    "modal.newBranch": "Новое ответвление", 
+    "modal.branchName": "Название ответвления", 
+    "modal.exportLines": "Экспорт данных",
+    "modal.downloadJSON": "Скачать", 
+    "modal.importLines": "Импорт данных", 
+    "modal.import": "Импорт", 
+    "modal.close": "Закрыть"
+  },
+  de: {
+    "home.subtitle": "Entwerfen, bearbeiten und simulieren Sie Transportrouten.",
+    "home.editor": "Editor", 
+    "home.viewer": "Betrachter", 
+    "home.export": "Exportieren", 
+    "home.import": "Importieren",
+    "app.selectLine": "Wählen Sie eine Linie", 
+    "app.save": "Speichern", 
+    "cat.urban": "Städtisch", 
+    "cat.interurban": "Überlandverkehr", 
+    "cat.medium": "Mittlere Dist", 
+    "cat.long": "Lange Dist", 
+    "modal.newLine": "Neue Linie", 
+    "modal.create": "Erstellen", 
+    "modal.cancel": "Abbrechen", 
+    "modal.lineName": "Name", 
+    "modal.company": "Firma", 
+    "modal.serviceType": "Service",
+    "modal.official": "Offizielle Linie",
+    "modal.newBranch": "Neue Zweigstelle", 
+    "modal.branchName": "Zweigstellenname", 
+    "modal.exportLines": "Daten exportieren",
+    "modal.downloadJSON": "Herunterladen", 
+    "modal.importLines": "Daten importieren", 
+    "modal.import": "Importieren", 
+    "modal.close": "Schließen"
+  }
+};
+
+let currentLang = 'es';
+let rawDB = JSON.parse(localStorage.getItem('redbus_sim_db')) || {
+  "Tucumán": {
+    "Urbano": {},
+    "InterUrbano": {},
+    "Media Distancia": {},
+    "Larga Distancia": {}
+  }
+};
+let db = rawDB;
+const currentProvince = "Tucumán";
+const availableCategories = ["Urbano", "InterUrbano", "Media Distancia", "Larga Distancia"];
+
+/* ============================================================
+   FUNCIONES CORE
+   ============================================================ */
+function t(key) { 
+  return (i18nData[currentLang] || i18nData.es)[key] || key; 
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const translation = t(key);
+    if (el.tagName === 'INPUT' && el.type === 'text') {
+      el.placeholder = translation;
+    } else {
+      el.textContent = translation;
+    }
+  });
+}
+
+function setLang(l) {
+  currentLang = l;
+  document.documentElement.lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes(l.toUpperCase()));
+  });
+  applyI18n();
+  showToast('Idioma: ' + l.toUpperCase());
+}
+
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> <span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(20px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function updateHomeStats() {
+  let count = 0;
+  availableCategories.forEach(c => {
+    if(db[currentProvince][c]) count += Object.keys(db[currentProvince][c]).length;
+  });
+  const statsEl = document.getElementById('home-stats-pill');
+  if (statsEl) {
+    statsEl.innerHTML = `<i class="fas fa-database"></i> <span>${count} Líneas guardadas</span>`;
+  }
+}
+
+/* ============================================================
+   PANEL DE GUÍA
+   ============================================================ */
+function toggleGuide() {
+  const panel = document.getElementById('guide-panel');
+  const overlay = document.getElementById('guide-overlay');
+  const isOpen = panel.classList.contains('open');
+  
+  if (isOpen) {
+    panel.classList.remove('open');
+    overlay.classList.remove('visible');
+  } else {
+    panel.classList.add('open');
+    overlay.classList.add('visible');
+  }
+}
+
+/* ============================================================
+   MAP SETUP
+   ============================================================ */
+let map, drawnItems, drawControl, busMarker;
+
+function initMap() {
+  if (map) return;
+  map = L.map('map', { zoomControl: false }).setView([-26.8241, -65.2226], 13);
+  
+  // CartoDB Dark Matter para un look profesional (Gemini)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 19
+  }).addTo(map);
+
+  drawnItems = new L.FeatureGroup().addTo(map);
+  drawControl = new L.Control.Draw({
+    position: 'topright',
+    draw: {
+      polyline: { shapeOptions: { color: '#ff3b5c', weight: 4 } },
+      marker: true,
+      polygon: false,
+      rectangle: false,
+      circle: false,
+      circlemarker: false
+    },
+    edit: { featureGroup: drawnItems }
+  });
+
+  map.on(L.Draw.Event.CREATED, e => {
+    const layer = e.layer;
+    drawnItems.addLayer(layer);
+    
+    // Agregar evento de clic para modo borrado múltiple
+    layer.on('click', function() {
+      if(isDeleteMode) {
+        toggleItemForDeletion(layer);
+      }
+    });
+    
+    document.getElementById('save-draw-btn').style.display = 'inline-flex';
+  });
+}
+
+let appMode = 'viewer';
+let selectedLine = null;
+let editingRamal = null;
+let isDeleteMode = false;
+let itemsToDelete = [];
+
+/* ============================================================
+   APP LOGIC
+   ============================================================ */
+function openApp(mode) {
+  appMode = mode;
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('app-interface').style.display = 'flex';
+  document.getElementById('app-interface').setAttribute('aria-hidden', 'false');
+  document.getElementById('app-title').textContent = t(mode === 'editor' ? 'home.editor' : 'home.viewer');
+  document.getElementById('fabCreate').style.display = mode === 'editor' ? 'flex' : 'none';
+  
+  setTimeout(() => {
+    initMap();
+    map.invalidateSize();
+  }, 80);
+  
+  renderCategories();
+  
+  if (mode === 'editor') {
+    document.getElementById('delete-multi-btn').style.display = 'inline-flex';
+  } else {
+    if (drawControl._map) drawControl.remove();
+    document.getElementById('delete-multi-btn').style.display = 'none';
+  }
+}
+
+function goHome() {
+  if (document.getElementById('save-draw-btn').style.display !== 'none') {
+    if (!confirm('Tienes cambios sin guardar. ¿Ir a inicio?')) return;
+  }
+  
+  document.getElementById('app-interface').style.display = 'none';
+  document.getElementById('home-screen').style.display = 'flex';
+  drawnItems.clearLayers();
+  selectedLine = null;
+  editingRamal = null;
+  stopBusAnimation();
+  
+  // Resetear modo de borrado
+  if(isDeleteMode) {
+    isDeleteMode = false;
+    itemsToDelete = [];
+    const btn = document.getElementById('delete-multi-btn');
+    btn.classList.remove('active');
+    btn.innerHTML = `<i class="fas fa-trash-alt"></i> Borrar (<span id="delete-count">0</span>)`;
+  }
+  document.getElementById('delete-multi-btn').style.display = 'none';
+  
+  if(drawControl._map) drawControl.remove();
+}
+
+function renderCategories() {
+  const container = document.getElementById('categories-container');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  availableCategories.forEach(cat => {
+    const lines = db[currentProvince][cat];
+    if (!lines || Object.keys(lines).length === 0) return;
+    
+    const catGroup = document.createElement('div');
+    catGroup.className = 'cat-group';
+    
+    const catHeader = document.createElement('div');
+    catHeader.className = 'cat-header';
+    catHeader.innerHTML = `
+      <span>${t('cat.' + catKeyMap(cat))}</span>
+      <span>${Object.keys(lines).length}</span>
+    `;
+    catHeader.onclick = () => {
+      catBody.classList.toggle('show');
+    };
+    
+    const catBody = document.createElement('div');
+    catBody.className = 'cat-body';
+    
+    Object.keys(lines).forEach(lineName => {
+      const lineRow = document.createElement('div');
+      lineRow.className = 'line-row';
+      lineRow.dataset.search = lineName.toLowerCase();
+      
+      const lineBtn = document.createElement('div');
+      lineBtn.className = 'line-btn';
+      lineBtn.innerHTML = `
+        <span>${lineName}</span>
+        <div class="mini-actions">
+          <i class="fas fa-edit" onclick="event.stopPropagation(); openRenameLine('${cat}', '${lineName}')"></i>
+          <i class="fas fa-trash" onclick="event.stopPropagation(); deleteLine('${cat}', '${lineName}')"></i>
+        </div>
+      `;
+      lineBtn.onclick = () => selectLine(cat, lineName);
+      
+      const ramalContainer = document.createElement('div');
+      ramalContainer.className = 'ramal-container';
+      ramalContainer.id = `ramals-${cat}-${lineName}`.replace(/\s/g, '');
+      
+      lineRow.appendChild(lineBtn);
+      lineRow.appendChild(ramalContainer);
+      catBody.appendChild(lineRow);
+    });
+    
+    catGroup.appendChild(catHeader);
+    catGroup.appendChild(catBody);
+    container.appendChild(catGroup);
+  });
+}
+
+function catKeyMap(cat) {
+  const map = {
+    "Urbano": "urban",
+    "InterUrbano": "interurban",
+    "Media Distancia": "medium",
+    "Larga Distancia": "long"
+  };
+  return map[cat] || "urban";
+}
+
+function selectLine(cat, name) {
+  selectedLine = { category: cat, name: name };
+  document.getElementById('selection-status').innerHTML = `<strong>${name}</strong>`;
+  
+  const ramalContainer = document.getElementById(`ramals-${cat}-${name}`.replace(/\s/g, ''));
+  if (ramalContainer) {
+    ramalContainer.style.display = ramalContainer.style.display === 'block' ? 'none' : 'block';
+    if (ramalContainer.style.display === 'block' && ramalContainer.children.length === 0) {
+      renderRamales(cat, name, ramalContainer);
+    }
+  }
+}
+
+function renderRamales(cat, line, container) {
+  container.innerHTML = '';
+  const ramales = db[currentProvince][cat][line];
+  if (!ramales) return;
+  
+  Object.keys(ramales).forEach(ramalName => {
+    if (ramalName === '_info') return;
+    
+    const ramalItem = document.createElement('div');
+    ramalItem.className = 'ramal-item';
+    ramalItem.innerHTML = `
+      <span>${ramalName}</span>
+      <div class="mini-actions">
+        <i class="fas fa-copy" title="Copiar Ramal" onclick="event.stopPropagation(); openCopyModal('${ramalName}', '${line}', '${cat}')"></i>
+        <i class="fas fa-edit" onclick="event.stopPropagation(); openRenameRamal('${cat}', '${line}', '${ramalName}')"></i>
+        <i class="fas fa-trash" onclick="event.stopPropagation(); deleteRamal('${cat}', '${line}', '${ramalName}')"></i>
+      </div>
+    `;
+    ramalItem.onclick = () => selectRamal(cat, line, ramalName);
+    container.appendChild(ramalItem);
+  });
+  
+  if (appMode === 'editor') {
+    const addBtn = document.createElement('div');
+    addBtn.className = 'ramal-item';
+    addBtn.style.borderLeft = '3px solid var(--teal)';
+    addBtn.innerHTML = '<i class="fas fa-plus"></i> <span>Añadir ramal</span>';
+    addBtn.onclick = () => {
+      document.getElementById('modalCreateRamal').style.display = 'flex';
+    };
+    container.appendChild(addBtn);
+  }
+}
+
+function selectRamal(cat, line, ramal) {
+  editingRamal = ramal;
+  selectedLine = { category: cat, name: line };
+  
+  document.querySelectorAll('.ramal-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  
+  drawnItems.clearLayers();
+  stopBusAnimation();
+  
+  const geoJSON = db[currentProvince][cat][line][ramal];
+  if (geoJSON && geoJSON.features) {
+    L.geoJSON(geoJSON).eachLayer(layer => {
+      drawnItems.addLayer(layer);
+      
+      // Agregar evento de clic para modo borrado múltiple
+      layer.on('click', function() {
+        if(isDeleteMode) {
+          toggleItemForDeletion(layer);
+        }
+      });
+    });
+    map.fitBounds(drawnItems.getBounds());
+    
+    if (appMode === 'viewer') {
+      startBusAnimation(geoJSON);
+    }
+  }
+  
+  // Agregar controles de dibujo solo en modo editor
+  if (appMode === 'editor') {
+    if (!drawControl._map) map.addControl(drawControl);
+  } else {
+    if (drawControl._map) drawControl.remove();
+  }
+  
+  document.getElementById('selection-status').innerHTML = `<strong>${line}</strong> <span class="status-company-sub">${ramal}</span>`;
+}
+
+/* ============================================================
+   BUS ANIMATION (Gemini)
+   ============================================================ */
+let animFrame;
+function startBusAnimation(geoJSON) {
+  if (!geoJSON) return;
+  let coords = [];
+  geoJSON.features.forEach(f => {
+    if (f.geometry.type === 'LineString') {
+      coords = coords.concat(f.geometry.coordinates.map(c => [c[1], c[0]]));
+    }
+  });
+  if (coords.length < 2) return;
+  
+  const busIcon = L.divIcon({
+    className: 'bus-icon',
+    html: '<div style="background:#00f0c0; width:20px; height:20px; border-radius:50%; box-shadow:0 0 10px #00f0c0; border:2px solid #fff;"></div>',
+    iconSize: [20, 20]
+  });
+  
+  busMarker = L.marker(coords[0], { icon: busIcon }).addTo(map);
+  
+  let currentIndex = 0;
+  let progress = 0;
+  const speedMetersPerFrame = 15;
+  
+  function animate() {
+    if (!busMarker) return;
+    const p1 = L.latLng(coords[currentIndex]);
+    const p2 = L.latLng(coords[currentIndex + 1]);
+    const dist = map.distance(p1, p2);
+    const step = (dist > 0) ? speedMetersPerFrame / dist : 1;
+    progress += step;
+    
+    if (progress >= 1) {
+      progress = 0;
+      currentIndex++;
+      if (currentIndex >= coords.length - 1) currentIndex = 0;
+    } else {
+      const lat = p1.lat + (p2.lat - p1.lat) * progress;
+      const lng = p1.lng + (p2.lng - p1.lng) * progress;
+      busMarker.setLatLng([lat, lng]);
+    }
+    animFrame = requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+function stopBusAnimation() {
+  if (busMarker) busMarker.remove();
+  cancelAnimationFrame(animFrame);
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+function saveCurrentRamalDraw() {
+  if (!selectedLine || !editingRamal) return;
+  const geo = drawnItems.toGeoJSON();
+  db[currentProvince][selectedLine.category][selectedLine.name][editingRamal] = geo;
+  saveDB();
+  document.getElementById('save-draw-btn').style.display = 'none';
+  showToast('Recorrido guardado correctamente');
+}
+
+function showCreateOptions() {
+  document.getElementById('modalCreateLine').style.display = 'flex';
+}
+
+function confirmCreateLine() {
+  const name = document.getElementById('newLineName').value.trim();
+  const cat = document.getElementById('newLineCategory').value;
+  const comp = document.getElementById('newLineCompany').value.trim();
+  const isOfficial = document.getElementById('newLineOfficial').checked;
+  
+  if (!name) return showToast('Falta el nombre', 'error');
+  
+  if (!db[currentProvince][cat][name]) {
+    db[currentProvince][cat][name] = {
+      _info: {
+        company: comp,
+        isReal: isOfficial
+      }
+    };
+    saveDB();
+    renderCategories();
+    closeModals();
+    showToast('Línea creada');
+  } else {
+    showToast('La línea ya existe', 'error');
+  }
+}
+
+function confirmCreateRamal() {
+  const rName = document.getElementById('newRamalName').value.trim();
+  if (!rName || !selectedLine) return;
+  
+  db[currentProvince][selectedLine.category][selectedLine.name][rName] = null;
+  saveDB();
+  closeModals();
+  showToast('Ramal añadido');
+  
+  const ramalDiv = document.getElementById(`ramals-${selectedLine.category}-${selectedLine.name}`.replace(/\s/g, ''));
+  if (ramalDiv) renderRamales(selectedLine.category, selectedLine.name, ramalDiv);
+}
+
+function deleteLine(cat, name) {
+  if (confirm('¿Eliminar ' + name + '?')) {
+    delete db[currentProvince][cat][name];
+    saveDB();
+    renderCategories();
+    showToast('Línea eliminada');
+  }
+}
+
+function deleteRamal(cat, line, ramal) {
+  if (confirm('¿Eliminar ramal ' + ramal + '?')) {
+    delete db[currentProvince][cat][line][ramal];
+    saveDB();
+    const ramalDiv = document.getElementById(`ramals-${cat}-${line}`.replace(/\s/g, ''));
+    if (ramalDiv) renderRamales(cat, line, ramalDiv);
+    showToast('Ramal eliminado');
+  }
+}
+
+function openRenameLine(cat, name) {
+  document.getElementById('renameType').value = 'line';
+  document.getElementById('renameOldName').value = name;
+  document.getElementById('renameCat').value = cat;
+  document.getElementById('renameNewName').value = name;
+  
+  const lineFields = document.getElementById('renameLineFields');
+  const companyInput = document.getElementById('renameNewCompany');
+  const categorySelect = document.getElementById('renameNewCategory');
+  const officialCheck = document.getElementById('renameNewOfficial');
+  
+  lineFields.style.display = 'block';
+  // Cargar datos actuales
+  const currentInfo = db[currentProvince][cat][name]._info || {};
+  companyInput.value = currentInfo.company || '';
+  officialCheck.checked = currentInfo.isReal === true;
+  categorySelect.value = cat;
+
+  document.getElementById('modalRename').style.display = 'flex';
+}
+
+function openRenameRamal(cat, line, ramal) {
+  document.getElementById('renameType').value = 'ramal';
+  document.getElementById('renameOldName').value = ramal;
+  document.getElementById('renameCat').value = cat;
+  document.getElementById('renameParentLine').value = line;
+  document.getElementById('renameNewName').value = ramal;
+  
+  const lineFields = document.getElementById('renameLineFields');
+  lineFields.style.display = 'none';
+
+  document.getElementById('modalRename').style.display = 'flex';
+}
+
+function confirmRename() {
+  const type = document.getElementById('renameType').value;
+  const oldName = document.getElementById('renameOldName').value;
+  const newName = document.getElementById('renameNewName').value.trim();
+  const oldCat = document.getElementById('renameCat').value;
+  
+  if(!newName) {
+    showToast('Nombre inválido', 'error');
+    return;
+  }
+
+  if(type === 'line') {
+    const newCompany = document.getElementById('renameNewCompany').value.trim();
+    const newCat = document.getElementById('renameNewCategory').value;
+    const isReal = document.getElementById('renameNewOfficial').checked;
+    
+    // Verificar si la línea existe en la categoría destino (si cambia nombre o cat)
+    if((newName !== oldName || newCat !== oldCat) && db[currentProvince][newCat][newName]) {
+      showToast('Ya existe una línea con ese nombre en la categoría seleccionada', 'error');
+      return;
+    }
+    
+    // Obtener datos y actualizar info
+    const lineData = db[currentProvince][oldCat][oldName];
+    if(!lineData._info) lineData._info = {};
+    lineData._info.company = newCompany;
+    lineData._info.isReal = isReal;
+
+    // Mover datos si cambió categoría o nombre
+    if (newCat !== oldCat || newName !== oldName) {
+      db[currentProvince][newCat][newName] = lineData;
+      // Eliminar antigua
+      delete db[currentProvince][oldCat][oldName];
+      
+      // Si la línea seleccionada era esta, actualizar referencia
+      if(selectedLine && selectedLine.name === oldName) {
+        selectedLine.name = newName;
+        selectedLine.category = newCat;
+      }
+    }
+    
+  } else {
+    // Renombrar ramal
+    const pLine = document.getElementById('renameParentLine').value;
+    if(newName !== oldName && db[currentProvince][oldCat][pLine][newName]) {
+      showToast('Ya existe ese ramal', 'error');
+      return;
+    }
+    
+    if(newName !== oldName) {
+      db[currentProvince][oldCat][pLine][newName] = db[currentProvince][oldCat][pLine][oldName];
+      delete db[currentProvince][oldCat][pLine][oldName];
+      if(editingRamal === oldName) editingRamal = newName;
+    }
+  }
+  saveDB();
+  closeModals();
+  renderCategories();
+  showToast('Actualizado correctamente');
+}
+
+function openCopyModal(ramal, line, cat) {
+  document.getElementById('copySourceRamal').innerText = ramal;
+  document.getElementById('copySourceLine').value = line;
+  document.getElementById('copySourceCat').value = cat;
+  document.getElementById('copyNewName').value = '';
+  const select = document.getElementById('copyTargetLineSelect');
+  select.innerHTML = '';
+  availableCategories.forEach(c => {
+    const lines = db[currentProvince][c];
+    Object.keys(lines).forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({cat: c, line: l});
+      opt.text = `[${c}] ${l}`;
+      if(c === cat && l === line) opt.selected = true;
+      select.add(opt);
+    });
+  });
+  document.getElementById('modalCopyRamal').style.display = 'flex';
+}
+
+function confirmCopyRamal() {
+  const sourceRamal = document.getElementById('copySourceRamal').innerText;
+  const sourceLine = document.getElementById('copySourceLine').value;
+  const sourceCat = document.getElementById('copySourceCat').value;
+  const targetJson = JSON.parse(document.getElementById('copyTargetLineSelect').value);
+  let newName = document.getElementById('copyNewName').value.trim();
+  if(!newName) newName = sourceRamal + " (Copia)";
+  const targetCat = targetJson.cat;
+  const targetLine = targetJson.line;
+
+  if(db[currentProvince][targetCat][targetLine][newName]) {
+    showToast('Ya existe un ramal con ese nombre', 'error');
+    return;
+  }
+  const dataToCopy = db[currentProvince][sourceCat][sourceLine][sourceRamal];
+  db[currentProvince][targetCat][targetLine][newName] = dataToCopy ? JSON.parse(JSON.stringify(dataToCopy)) : null;
+  saveDB();
+  closeModals();
+  showToast('Ramal copiado exitosamente');
+  renderCategories(); 
+}
+
+function toggleMultiDelete() {
+  isDeleteMode = !isDeleteMode;
+  const btn = document.getElementById('delete-multi-btn');
+  if (isDeleteMode) {
+    btn.classList.add('active');
+    btn.innerHTML = `<i class="fas fa-check"></i> Confirmar (<span id="delete-count">0</span>)`;
+    itemsToDelete = [];
+    map.closePopup();
+    if(drawControl._map) drawControl.remove();
+  } else {
+    if (itemsToDelete.length > 0) {
+      if(confirm(`¿Borrar ${itemsToDelete.length} elementos seleccionados?`)) {
+        itemsToDelete.forEach(layer => drawnItems.removeLayer(layer));
+        document.getElementById('save-draw-btn').style.display = 'inline-flex';
+        showToast(`${itemsToDelete.length} elementos borrados`);
+      } else {
+        itemsToDelete.forEach(layer => {
+          if(layer.setOpacity) layer.setOpacity(1);
+          else if(layer.setStyle) layer.setStyle({opacity: 1});
+        });
+      }
+    }
+    btn.classList.remove('active');
+    updateDeleteCount();
+    btn.innerHTML = `<i class="fas fa-trash-alt"></i> Borrar (<span id="delete-count">0</span>)`;
+    itemsToDelete = [];
+    if(appMode === 'editor' && selectedLine) map.addControl(drawControl);
+  }
+}
+
+function toggleItemForDeletion(layer) {
+  const index = itemsToDelete.indexOf(layer);
+  if (index === -1) {
+    itemsToDelete.push(layer);
+    if(layer.setOpacity) layer.setOpacity(0.4); 
+    else if(layer.setStyle) layer.setStyle({opacity: 0.4});
+  } else {
+    itemsToDelete.splice(index, 1);
+    if(layer.setOpacity) layer.setOpacity(1);
+    else if(layer.setStyle) layer.setStyle({opacity: 1});
+  }
+  updateDeleteCount();
+}
+
+function updateDeleteCount() {
+  const span = document.getElementById('delete-count');
+  if(span) span.innerText = itemsToDelete.length;
+}
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+function closeModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+}
+
+function filterLines() {
+  const term = document.getElementById('lineSearchInput').value.toLowerCase();
+  document.querySelectorAll('.line-row').forEach(row => {
+    const text = row.dataset.search;
+    row.style.display = text.includes(term) ? 'flex' : 'none';
+  });
+  
+  if (term.length > 0) {
+    document.querySelectorAll('.cat-body').forEach(b => b.classList.add('show'));
+  } else {
+    document.querySelectorAll('.cat-body').forEach(b => b.classList.remove('show'));
+  }
+}
+
+function locateUser() {
+  map.locate({ setView: true, maxZoom: 16 });
+  showToast('Localizando...');
+}
+
+function toggleMultiDelete() {
+  // Placeholder
+  showToast('Función de eliminación múltiple próximamente', 'error');
+}
+
+/* ============================================================
+   EXPORT / IMPORT (mejorado con ChatGPT)
+   ============================================================ */
+function openExportModal() {
+  document.getElementById('modalExport').style.display = 'flex';
+  const listContainer = document.getElementById('exportChecklist');
+  listContainer.innerHTML = '';
+  let hasLines = false;
+  const provData = db[currentProvince];
+  
+  availableCategories.forEach(cat => {
+    const lines = Object.keys(provData[cat] || {});
+    if (lines.length > 0) {
+      const catHeader = document.createElement('div');
+      catHeader.style.cssText = "font-weight:600;margin:10px 0 5px;color:var(--teal);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;";
+      catHeader.innerText = t('cat.' + catKeyMap(cat));
+      listContainer.appendChild(catHeader);
+      
+      lines.forEach(lineName => {
+        hasLines = true;
+        const item = document.createElement('div');
+        item.style.cssText = "padding:8px 0;border-bottom:1px solid var(--border);";
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = JSON.stringify({ cat, lineName });
+        checkbox.checked = true;
+        const label = document.createElement('label');
+        label.style.cssText = "margin-left:8px;cursor:pointer;";
+        label.innerText = lineName;
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        listContainer.appendChild(item);
+      });
+    }
+  });
+  
+  if (!hasLines) {
+    listContainer.innerHTML = '<div style="text-align:center;padding:18px;color:var(--text-muted);font-size:0.8rem;">No hay líneas para exportar</div>';
+  }
+}
+
+function downloadJSON() {
+  const checkboxes = document.querySelectorAll('#exportChecklist input[type="checkbox"]:checked');
+  if (checkboxes.length === 0) return showToast('Selecciona al menos una línea', 'error');
+  
+  const exportPackage = {
+    type: "BusCreatorPackage",
+    version: "3.0",
+    province: currentProvince,
+    timestamp: new Date().toISOString(),
+    lines: []
+  };
+  
+  checkboxes.forEach(cb => {
+    const { cat, lineName } = JSON.parse(cb.value);
+    exportPackage.lines.push({
+      category: cat,
+      name: lineName,
+      data: db[currentProvince][cat][lineName]
+    });
+  });
+  
+  const blob = new Blob([JSON.stringify(exportPackage, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+  a.href = url;
+  a.download = checkboxes.length === 1
+    ? `Line_${JSON.parse(checkboxes[0].value).lineName.replace(/\s/g, '_')}.json`
+    : `BusCreator_Pack_${checkboxes.length}_${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  closeModals();
+  showToast('Exportado correctamente');
+}
+
+function openImportModal() {
+  document.getElementById('importInput').value = '';
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('modalImport').style.display = 'flex';
+}
+
+function readJSONFile(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('importInput').value = e.target.result;
+    };
+    reader.readAsText(input.files[0]);
+  }
+}
+
+function confirmImport() {
+  try {
+    const raw = document.getElementById('importInput').value;
+    if (!raw) return showToast('Contenido vacío', 'error');
+    const data = JSON.parse(raw);
+    let importCount = 0;
+    
+    if ((data.type === "BusCreatorPackage" || data.type === "RedBusPackage") && Array.isArray(data.lines)) {
+      if (!confirm(`Se detectaron ${data.lines.length} líneas. ¿Importar?`)) return;
+      data.lines.forEach(item => {
+        const safeCat = availableCategories.includes(item.category) ? item.category : "Media Distancia";
+        db[currentProvince][safeCat][item.name] = item.data;
+        importCount++;
+      });
+    } else if (data.type === "RedBusLine" || data.ramales) {
+      const safeCat = availableCategories.includes(data.category) ? data.category : "Media Distancia";
+      const targetName = data.name || "Imported Line";
+      if (db[currentProvince][safeCat][targetName]) {
+        if (!confirm(`La línea ${targetName} ya existe. ¿Sobrescribir?`)) return;
+      }
+      db[currentProvince][safeCat][targetName] = data.ramales || data;
+      importCount = 1;
+    } else {
+      throw new Error("Formato desconocido");
+    }
+    
+    saveDB();
+    closeModals();
+    showToast(`${importCount} línea(s) importada(s)`);
+    renderCategories();
+    updateHomeStats();
+  } catch (e) {
+    showToast('Error al importar: ' + e.message, 'error');
+    console.error(e);
+  }
+}
+
+function saveDB() {
+  localStorage.setItem('redbus_sim_db', JSON.stringify(db));
+}
+
+/* ============================================================
+   DEMO DATA & CLEAR (ChatGPT)
+   ============================================================ */
+function seedDemoData() {
+  if (Object.keys(db['Tucumán']['Urbano']).length > 0 && !confirm('Ya hay datos. ¿Reemplazar con demo?')) return;
+  
+  db = {
+    "Tucumán": {
+      "Urbano": {
+        "102": {
+          _info: { company: "Demo Transport", isReal: false },
+          "Ramal A": null
+        }
+      },
+      "InterUrbano": {},
+      "Media Distancia": {},
+      "Larga Distancia": {}
+    }
+  };
+  saveDB();
+  updateHomeStats();
+  renderCategories();
+  showToast('Demo cargada');
+}
+
+function clearDataConfirm() {
+  if (confirm('¿Borrar toda la base de datos local?')) {
+    db = {
+      "Tucumán": {
+        "Urbano": {},
+        "InterUrbano": {},
+        "Media Distancia": {},
+        "Larga Distancia": {}
+      }
+    };
+    saveDB();
+    updateHomeStats();
+    renderCategories();
+    showToast('Datos borrados');
+  }
+}
+
+/* ============================================================
+   RESIZABLE PANEL (Gemini)
+   ============================================================ */
+const panel = document.getElementById('resizable-panel');
+const handle = document.getElementById('resize-handle');
+let startY, startH;
+
+handle.addEventListener('touchstart', e => {
+  startY = e.touches[0].clientY;
+  startH = panel.clientHeight;
+  document.addEventListener('touchmove', onTouchMove);
+  document.addEventListener('touchend', onTouchEnd);
+});
+
+handle.addEventListener('mousedown', e => {
+  startY = e.clientY;
+  startH = panel.clientHeight;
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+});
+
+function onTouchMove(e) {
+  panel.style.height = (startH + (startY - e.touches[0].clientY)) + 'px';
+}
+
+function onTouchEnd() {
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('touchend', onTouchEnd);
+  if (map) map.invalidateSize();
+}
+
+function onMouseMove(e) {
+  panel.style.height = (startH + (startY - e.clientY)) + 'px';
+}
+
+function onMouseUp() {
+  document.removeEventListener('mousemove', onMouseMove);
+  document.removeEventListener('mouseup', onMouseUp);
+  if (map) map.invalidateSize();
+}
+
+/* ============================================================
+   KEYBOARD SHORTCUTS (ChatGPT)
+   ============================================================ */
+document.addEventListener('keydown', (e) => {
+  if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+  
+  if (e.key.toLowerCase() === 'h') goHome();
+  if (e.key.toLowerCase() === 'e') openApp('editor');
+  if (e.key.toLowerCase() === 'v') openApp('viewer');
+  
+  if (document.getElementById('home-screen').style.display !== 'none') {
+    if (['1', '2', '3', '4', '5'].includes(e.key)) {
+      const langs = ['es', 'en', 'pt', 'ru', 'de'];
+      const idx = parseInt(e.key, 10) - 1;
+      if (langs[idx]) setLang(langs[idx]);
+    }
+  }
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  applyI18n();
+  updateHomeStats();
+  
+  const firstMenu = document.querySelector('.menu-card');
+  if (firstMenu) firstMenu.setAttribute('tabindex', '0');
+});
+</script>
+</body>
+</html>
