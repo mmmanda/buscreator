@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Bus Creator - Herramienta de Migración Universal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #0f0f14;
+            --surface: #1a1a24;
+            --primary: #00f0c0;
+            --accent: #ff3b5c;
+            --text: #f0f0f5;
+            --text-dim: #9a9ab0;
+            --border: #2e2e3e;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            text-align: center;
+            margin-top: 0;
+            background: linear-gradient(to right, var(--primary), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .step {
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .step:last-child { border-bottom: none; }
+
+        h3 { color: var(--primary); font-size: 1rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .badge { background: var(--border); color: var(--text); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: auto; }
+
+        /* File Input */
+        .file-drop-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+        }
+        .file-drop-area:hover { border-color: var(--primary); background: rgba(0, 240, 192, 0.05); }
+        .file-drop-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .file-msg { color: var(--text-dim); pointer-events: none; }
+        .file-icon { font-size: 2rem; margin-bottom: 10px; color: var(--text-dim); }
+
+        /* Form Elements */
+        label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-dim); }
+        select, input[type="text"] {
+            width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border);
+            border-radius: 8px; color: white; font-family: inherit; margin-bottom: 15px; box-sizing: border-box;
+        }
+        select:focus, input:focus { outline: none; border-color: var(--primary); }
+
+        .row { display: flex; gap: 15px; }
+        .col { flex: 1; }
+
+        /* Checkbox */
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; background: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
+        .checkbox-wrapper input { margin: 0; }
+
+        /* Log Area */
+        #log-area {
+            background: #000; font-family: monospace; font-size: 0.8rem; padding: 10px;
+            border-radius: 8px; height: 100px; overflow-y: auto; color: #0f0; margin-bottom: 15px;
+            display: none;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Version Info */
+        .version-info {
+            background: rgba(255, 59, 92, 0.1); border: 1px solid var(--accent); color: var(--accent);
+            padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 15px; display: none;
+        }
+        
+        .info-box {
+            background: rgba(0, 240, 192, 0.1); border: 1px solid var(--primary); color: var(--primary);
+            padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 15px; display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><i class="fas fa-random"></i> Bus Creator Migrator</h1>
+        <p style="text-align:center; color:var(--text-dim); font-size:0.9rem; margin-bottom:30px;">
+            Convierte tus líneas entre cualquier versión (1.0 ↔ 5.0)
+        </p>
+
+        <div class="step">
+            <h3>1. Archivo Origen <span class="badge" id="detected-ver">Esperando archivo...</span></h3>
+            <div class="file-drop-area" id="drop-area">
+                <i class="fas fa-file-upload file-icon"></i>
+                <div class="file-msg" id="file-msg">Arrastra tu JSON o haz clic aquí</div>
+                <input type="file" id="fileInput" accept=".json">
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>2. Configuración de Destino</h3>
+            
+            <label>Versión a la que quieres migrar:</label>
+            <select id="targetVersion" onchange="updateOptions()">
+                <option value="5.0">Versión 5.0 (Bus Creator - Config Regional)</option>
+                <option value="4.0">Versión 4.0 / 4.5 (Bus Creator - UI Moderna)</option>
+                <option value="3.0">Versión 3.0 (RBS - Info básica)</option>
+                <option value="2.0">Versión 2.0 (RBS - Legacy con Empresa)</option>
+                <option value="1.0">Versión 1.0 (RBS - Legacy Simple)</option>
+            </select>
+
+            <div id="downgrade-warning" class="version-info">
+                <i class="fas fa-exclamation-triangle"></i> 
+                <strong>Atención:</strong> Al degradar a esta versión, se perderán datos como el tipo de transporte o si la línea es oficial. En v1.0 se pierde la empresa.
+            </div>
+            
+            <div id="multiline-info" class="info-box">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Múltiples líneas detectadas:</strong> Se generará un archivo ZIP con cada línea en formato individual compatible con v<span id="target-ver-span"></span>.
+            </div>
+
+            <div id="upgrade-options" style="display:none;">
+                <div style="margin-bottom:10px; font-size:0.85rem; color:var(--primary); border-top:1px dashed var(--border); padding-top:10px;">
+                    <i class="fas fa-magic"></i> Rellenar datos faltantes (solo si no existen):
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <label>Empresa por defecto:</label>
+                        <input type="text" id="defaultCompany" placeholder="Ej: Sin Empresa">
+                    </div>
+                    <div class="col" id="transport-col">
+                        <label>Tipo Transporte:</label>
+                        <select id="defaultTransport">
+                            <option value="bus">Bus</option>
+                            <option value="metro">Metro</option>
+                            <option value="tren">Tren</option>
+                            <option value="ferry">Ferry</option>
+                            <option value="trolley">Trolley</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="real-col">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" id="defaultReal">
+                        <span>Marcar como "Línea Oficial" por defecto</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="step">
+            <div id="log-area"></div>
+            <button class="btn btn-primary" id="convertBtn" onclick="processConversion()" disabled>
+                <i class="fas fa-sync-alt"></i> Convertir y Descargar
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let sourceData = null;
+        let sourceVersion = null;
+        let fileName = "lineas";
+
+        // 1. CARGA DE ARCHIVO
+        const fileInput = document.getElementById('fileInput');
+        const dropArea = document.getElementById('drop-area');
+        const fileMsg = document.getElementById('file-msg');
+        const convertBtn = document.getElementById('convertBtn');
+        const logArea = document.getElementById('log-area');
+        const detectedVer = document.getElementById('detected-ver');
+
+        fileInput.addEventListener('change', handleFile);
+        dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.style.borderColor = 'var(--primary)'; });
+        dropArea.addEventListener('dragleave', () => dropArea.style.borderColor = 'var(--border)');
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = 'var(--border)';
+            if (e.dataTransfer.files.length) handleFile({ target: { files: e.dataTransfer.files } });
+        });
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileName = file.name.replace('.json', '');
+            fileMsg.innerHTML = `<i class="fas fa-file-alt"></i> ${file.name}`;
+            
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    sourceData = JSON.parse(ev.target.result);
+                    sourceVersion = detectVersion(sourceData);
+                    detectedVer.textContent = `v${sourceVersion} detectada`;
+                    detectedVer.style.background = 'rgba(0, 240, 192, 0.2)';
+                    detectedVer.style.color = 'var(--primary)';
+                    convertBtn.disabled = false;
+                    updateOptions();
+                    log("Archivo cargado correctamente.");
+                } catch(err) {
+                    fileMsg.textContent = "Error al leer el archivo.";
+                    log("Error: " + err.message, true);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function log(msg, isError = false) {
+            logArea.style.display = 'block';
+            logArea.innerHTML += `<div style="color:${isError ? '#f00' : '#0f0'}">${msg}</div>`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // 2. DETECCIÓN DE VERSIÓN
+        function detectVersion(data) {
+            if (data.version) return parseFloat(data.version);
+            if (data.type === "BusCreatorPackage") return 4.0;
+            if (data.type === "RedBusPackage") return 3.0;
+            if (data.type === "RedBusLine") {
+                return data.ramales && data.ramales._info ? 2.0 : 1.0;
+            }
+            if (data._info) return 2.0;
+            
+            const firstKey = Object.keys(data)[0];
+            if (firstKey && typeof data[firstKey] === 'object') {
+                const subKeys = Object.keys(data[firstKey]);
+                if (subKeys.includes('Urbano') || subKeys.includes('InterUrbano')) return 2.0;
+            }
+            return 1.0;
+        }
+
+        function updateOptions() {
+            const target = parseFloat(document.getElementById('targetVersion').value);
+            const upgradeOptions = document.getElementById('upgrade-options');
+            const warn = document.getElementById('downgrade-warning');
+            const multilineInfo = document.getElementById('multiline-info');
+            
+            if (!sourceData) return;
+
+            // Warning Logic
+            if (target < sourceVersion) {
+                warn.style.display = 'block';
+                upgradeOptions.style.display = 'none';
+            } else {
+                warn.style.display = 'none';
+                upgradeOptions.style.display = 'block';
+            }
+            
+            // Multiline info for v1.0 and v2.0
+            const lines = normalizeData(sourceData);
+            if (target <= 2.0 && lines.length > 1) {
+                multilineInfo.style.display = 'block';
+                document.getElementById('target-ver-span').textContent = target.toFixed(1);
+            } else {
+                multilineInfo.style.display = 'none';
+            }
+
+            // Fields visibility based on target
+            document.getElementById('transport-col').style.visibility = (target >= 5.0) ? 'visible' : 'hidden';
+            document.getElementById('real-col').style.display = (target >= 3.0) ? 'block' : 'none';
+        }
+
+        // 3. NORMALIZACIÓN DE DATOS
+        // Convierte cualquier entrada a un array estándar de objetos línea
+        function normalizeData(input) {
+            let lines = [];
+
+            // Caso A: Paquete (v3, v4, v5)
+            if (input.type && input.lines && Array.isArray(input.lines)) {
+                return input.lines; 
+            }
+
+            // Caso B: Línea individual antigua (v1, v2) con wrapper "RedBusLine"
+            if (input.type === "RedBusLine") {
+                return [{
+                    category: input.category || "Urbano",
+                    name: input.name || "Línea Importada",
+                    data: input.ramales || input
+                }];
+            }
+
+            // Caso C: Objeto crudo de una línea (Directo ramales)
+            if (!input.type && !input.Tucumán && (input._info || Object.keys(input).length > 0)) {
+                return [{
+                    category: "Urbano",
+                    name: fileName || "Línea Convertida",
+                    data: input
+                }];
+            }
+
+            // Caso D: Base de datos completa (localStorage dump)
+            const province = Object.keys(input)[0];
+            if (province && input[province]) {
+                const cats = input[province];
+                for (let cat in cats) {
+                    for (let lineName in cats[cat]) {
+                        lines.push({
+                            category: cat,
+                            name: lineName,
+                            data: cats[cat][lineName]
+                        });
+                    }
+                }
+            }
+
+            return lines;
+        }
+
+        // 4. LÓGICA DE CONVERSIÓN
+        function processConversion() {
+            log("Iniciando normalización de datos...");
+            let items = normalizeData(sourceData);
+            log(`Encontradas ${items.length} líneas para procesar.`);
+
+            const targetVer = parseFloat(document.getElementById('targetVersion').value);
+            const defComp = document.getElementById('defaultCompany').value || "Sin Empresa";
+            const defTrans = document.getElementById('defaultTransport').value;
+            const defReal = document.getElementById('defaultReal').checked;
+
+            let processedLines = items.map(item => {
+                let newData = JSON.parse(JSON.stringify(item.data)); // Deep copy
+                let newCat = item.category;
+
+                // 4.1. Mapeo de Categorías
+                if (targetVer >= 3.0 && newCat === "Rural") newCat = "Media Distancia";
+                if (targetVer < 3.0 && newCat === "Media Distancia") newCat = "Rural";
+
+                // 4.2. Gestión de _info
+                if (targetVer === 1.0) {
+                    if (newData._info) delete newData._info;
+                } else {
+                    if (!newData._info) newData._info = {};
+
+                    // v2.0+: Company
+                    if (!newData._info.company) newData._info.company = defComp;
+
+                    // v3.0+: isReal
+                    if (targetVer >= 3.0) {
+                        if (newData._info.isReal === undefined) newData._info.isReal = defReal;
+                    } else {
+                        delete newData._info.isReal;
+                    }
+
+                    // v5.0+: transportType
+                    if (targetVer >= 5.0) {
+                        if (!newData._info.transportType) newData._info.transportType = defTrans;
+                    } else {
+                        delete newData._info.transportType;
+                    }
+                }
+
+                return {
+                    category: newCat,
+                    name: item.name,
+                    data: newData
+                };
+            });
+
+            log("Transformación de datos completada.");
+            generateOutput(processedLines, targetVer);
+        }
+
+        // 5. GENERAR SALIDA
+        async function generateOutput(lines, version) {
+            let output = {};
+
+            if (version >= 3.0) {
+                // Formato Package (BusCreatorPackage / RedBusPackage)
+                output = {
+                    type: version >= 4.0 ? "BusCreatorPackage" : "RedBusPackage",
+                    version: version.toFixed(1),
+                    province: "Tucumán",
+                    timestamp: new Date().toISOString(),
+                    lines: lines
+                };
+                downloadJSON(output, `Migrated_v${version}_${fileName}.json`);
+            } else {
+                // Formato v1.0 / v2.0
+                if (lines.length === 1) {
+                    // Exportar estilo Single Line Legacy
+                    output = {
+                        type: "RedBusLine",
+                        category: lines[0].category,
+                        name: lines[0].name,
+                        ramales: lines[0].data
+                    };
+                    downloadJSON(output, `Migrated_v${version}_${lines[0].name}.json`);
+                } else {
+                    // Múltiples líneas: generar ZIP con archivos individuales
+                    log("Generando archivo ZIP con múltiples líneas...");
+                    await generateZipOutput(lines, version);
+                }
+            }
+        }
+
+        async function generateZipOutput(lines, version) {
+            const zip = new JSZip();
+            
+            lines.forEach((line, index) => {
+                const output = {
+                    type: "RedBusLine",
+                    category: line.category,
+                    name: line.name,
+                    ramales: line.data
+                };
+                
+                // Sanitizar nombre de archivo
+                const safeName = line.name.replace(/[^a-z0-9_\-]/gi, '_');
+                const filename = `${safeName}_v${version}.json`;
+                
+                zip.file(filename, JSON.stringify(output, null, 2));
+                log(`Agregado: ${filename}`);
+            });
+            
+            try {
+                const content = await zip.generateAsync({type: "blob"});
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Lineas_Migradas_v${version}_${fileName}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                log(`<b>¡Éxito!</b> Archivo ZIP descargado con ${lines.length} líneas.`);
+            } catch (error) {
+                log(`Error al generar ZIP: ${error.message}`, true);
+            }
+        }
+
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            log(`<b>¡Éxito!</b> Archivo descargado: ${filename}`);
+        }
+
+    </script>
+</body>
+</html>
