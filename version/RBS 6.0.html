@@ -1,0 +1,3825 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Bus Creator - 6.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Bus Creator es una herramienta interactiva para crear, editar y visualizar líneas de bus en un mapa. Diseña recorridos, agrega paradas y simula el movimiento de los buses en tiempo real." />
+  <meta name="keywords" content="bus creator, líneas de bus, simulador bus, mapa transporte, bus route planner, transit designer" />
+  <meta name="author" content="Bus Creator" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0f0f14" />
+  <link rel="canonical" href="https://mmmanda.github.io/buscreator/version/60.html" />
+
+  <!-- Open Graph (Facebook / LinkedIn / WhatsApp) -->
+  <meta property="og:title" content="Bus Creator – Diseña líneas de bus en el mapa" />
+  <meta property="og:description" content="Crea, edita y visualiza líneas de bus interactivas. Agrega paradas, diseña recorridos y observa los buses moverse en tiempo real sobre el mapa." />
+  <meta property="og:image" content="https://mmmanda.github.io/buscreator/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://mmmanda.github.io/buscreator/version/60.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Bus Creator" />
+  <meta property="og:locale" content="es_AR" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:locale:alternate" content="pt_BR" />
+  <meta property="og:locale:alternate" content="ru_RU" />
+  <meta property="og:locale:alternate" content="de_DE" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Bus Creator – Diseña líneas de bus en el mapa" />
+  <meta name="twitter:description" content="Crea, edita y visualiza líneas de bus interactivas con paradas y animaciones en tiempo real." />
+  <meta name="twitter:image" content="https://mmmanda.github.io/buscreator/og-image.png" />
+
+  <!-- Schema.org / JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Bus Creator",
+    "url": "https://mmmanda.github.io/buscreator/version/60.html",
+    "description": "Herramienta interactiva para crear y visualizar líneas de bus en mapas.",
+    "applicationCategory": "UtilityApplication",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <!-- Favicon placeholder -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a1a2e'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='18' fill='%23e94560'%3E🚌%3C/text%3E%3C/svg%3E" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+
+  <style>
+    /* ============================================================
+       TOKENS & PALETA — Tema Cyber-Industrial Mejorado (Gemini)
+       ============================================================ */
+    :root {
+      --bg-deep:      #0b0b0f;
+      --bg-surface:   #14141a;
+      --bg-raised:    #1f1f29;
+      --bg-hover:     #2a2a35;
+      --border:       #2e2e3e;
+      --text-primary: #f0f0f5;
+      --text-secondary:#9a9ab0;
+      --text-muted:   #5f5f70;
+      --accent:       #ff3b5c;
+      --accent-dim:   rgba(255, 59, 92, 0.15);
+      --accent-glow:  rgba(255, 59, 92, 0.4);
+      --teal:         #00f0c0;
+      --teal-dim:     rgba(0, 240, 192, 0.12);
+      --gold:         #f0a500;
+      --gold-dim:     rgba(240,165,0,0.12);
+      --stop-color:   #f0a500;
+      --bus-color:    #00f0c0;
+      --radius:       12px;
+      --radius-sm:    8px;
+      --shadow:       0 8px 32px rgba(0,0,0,0.5);
+      --shadow-sm:    0 4px 12px rgba(0,0,0,0.3);
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'Inter', sans-serif;
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Scrollbars modernos (Gemini) */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* ============================================================
+       HOME SCREEN — Mejorado (Claude + Gemini)
+       ============================================================ */
+    #home-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-deep);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 20px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Fondo abstracto mejorado (Gemini + Claude) */
+    #home-screen::before {
+      content: '';
+      position: absolute;
+      width: 150vw; height: 150vw;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,59,92,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 20% 80%, rgba(0,240,192,0.06) 0%, transparent 60%),
+        radial-gradient(circle at 80% 20%, rgba(240,165,0,0.03) 0%, transparent 50%);
+      top: -50%; left: -25%;
+      animation: pulseBg 10s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    @keyframes pulseBg { 
+      0% { opacity: 0.5; transform: scale(1); } 
+      100% { opacity: 1; transform: scale(1.1); } 
+    }
+
+    /* Language Switcher mejorado (Claude) */
+    .lang-selector-home {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      z-index: 10;
+    }
+    .lang-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid var(--border);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .lang-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--teal) 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .lang-btn:hover { 
+      background: var(--bg-hover); 
+      color: var(--text-primary);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255,59,92,0.2);
+    }
+    .lang-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+    .lang-btn.active::before { opacity: 1; }
+    .lang-flag { font-size: 1rem; line-height: 1; }
+    
+    /* Focus styles (ChatGPT) */
+    .lang-btn:focus, .menu-card:focus, .btn:focus { 
+      outline: 2px solid var(--accent); 
+      outline-offset: 2px; 
+    }
+
+    .home-hero {
+      text-align: center;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Logo mejorado con animaciones (Claude) */
+    .logo-badge {
+      width: 88px; height: 88px;
+      background: linear-gradient(135deg, var(--bg-raised), var(--bg-surface));
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: var(--shadow);
+      font-size: 2.5rem;
+      color: var(--accent);
+      position: relative;
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .logo-badge::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 2px dashed var(--accent);
+      opacity: 0.4;
+      animation: spin 18s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .logo-badge i {
+      filter: drop-shadow(0 0 12px var(--accent-glow));
+      animation: iconPulse 2s ease-in-out infinite;
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .home-hero h1 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+      background: linear-gradient(to right, #fff, var(--text-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .home-hero p { 
+      color: var(--text-secondary); 
+      max-width: 300px; 
+      margin: 0 auto; 
+      line-height: 1.6; 
+      font-size: 0.9rem; 
+    }
+
+    /* Stats pill (Gemini) */
+    .stats-pill {
+      margin-top: 15px;
+      display: inline-block;
+      padding: 6px 14px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--teal);
+      font-family: var(--font-body);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 400px;
+      z-index: 2;
+      margin-bottom: 24px;
+    }
+
+    .menu-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .25s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .menu-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--card-color, var(--accent));
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    
+    .menu-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--card-color);
+      box-shadow: 0 10px 30px -10px var(--card-glow);
+    }
+    .menu-card:hover::before { opacity: 1; }
+    
+    .menu-card:nth-child(1) { --card-color: var(--accent); --card-glow: var(--accent-glow); }
+    .menu-card:nth-child(2) { --card-color: var(--teal); --card-glow: var(--teal-dim); }
+    .menu-card:nth-child(3) { --card-color: var(--gold); --card-glow: var(--gold-dim); }
+    .menu-card:nth-child(4) { --card-color: #7c6bff; --card-glow: rgba(124,107,255,0.2); }
+    
+    .menu-card i { 
+      font-size: 1.6rem; 
+      color: var(--card-color); 
+      margin-bottom: 5px; 
+    }
+    .menu-card span { 
+      font-weight: 600; 
+      font-size: 0.85rem; 
+      color: var(--text-primary); 
+    }
+
+    /* Botón de guía inicial */
+    .guide-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255,59,92,0.4);
+      transition: all 0.3s;
+      z-index: 2500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+
+    .guide-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 30px rgba(255,59,92,0.6);
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 4px 20px rgba(255,59,92,0.4); }
+      50% { box-shadow: 0 4px 30px rgba(255,59,92,0.8); }
+    }
+
+    /* Home actions (ChatGPT) */
+    #home-actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      width: 100%;
+      max-width: 420px;
+      z-index: 2;
+    }
+
+    #home-actions .btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    #home-actions .btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--accent);
+    }
+
+    /* ============================================================
+       APP LAYOUT
+       ============================================================ */
+    #app-interface {
+      display: none;
+      height: 100%; 
+      width: 100%;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      height: 60px;
+      display: flex; 
+      align-items: center; 
+      gap: 16px;
+      flex-shrink: 0; 
+      z-index: 100;
+    }
+    
+    .back-btn {
+      width: 36px; 
+      height: 36px;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--bg-raised);
+      color: var(--text-secondary);
+      cursor: pointer; 
+      transition: .2s;
+      border: none;
+    }
+    .back-btn:hover { 
+      color: #fff; 
+      background: var(--bg-hover); 
+    }
+
+    header h2 { 
+      font-family: var(--font-display); 
+      font-size: 1.1rem; 
+      flex: 1; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
+
+    .action-btn {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: .2s;
+      font-family: var(--font-body);
+    }
+    .action-btn:hover { 
+      background: var(--bg-hover); 
+      border-color: var(--accent); 
+    }
+    .action-btn.primary { 
+      background: var(--teal); 
+      color: #fff; 
+      border-color: var(--teal); 
+    }
+    .action-btn.primary:hover { 
+      filter: brightness(1.15); 
+    }
+    .action-btn.danger { 
+      background: var(--accent); 
+      color: #fff; 
+      border-color: var(--accent); 
+    }
+    
+    .action-btn.danger.active {
+      background: #d32f2f;
+      border: 2px solid #ffcdd2;
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); }
+      50% { box-shadow: 0 0 0 10px rgba(211, 47, 47, 0); }
+    }
+
+    /* ============================================================
+       MAP CONTAINER
+       ============================================================ */
+    #map-container {
+      flex-grow: 1;
+      position: relative;
+      width: 100%;
+      min-height: 0;
+      display: flex;
+    }
+    #map { 
+      width: 100%; 
+      height: 100%; 
+    }
+
+    /* Leaflet dark tile filter (Claude) */
+    .leaflet-tile-pane { 
+      filter: brightness(0.85) saturate(0.7); 
+    }
+
+    /* FAB Stack mejorado (Gemini) */
+    .fab-stack {
+      position: absolute;
+      bottom: 24px; 
+      right: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 2000;
+      pointer-events: none;
+    }
+    
+    .fab {
+      width: 52px; 
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      pointer-events: auto;
+    }
+    .fab:active { transform: scale(0.92); }
+    
+    .fab.main {
+      background: var(--accent);
+      color: #fff;
+    }
+    .fab.main:hover { 
+      box-shadow: 0 4px 20px var(--accent-glow); 
+    }
+    
+    .fab:not(.main) {
+      background: var(--bg-raised);
+      color: var(--teal);
+      border: 1px solid var(--border);
+    }
+    .fab:not(.main):hover { 
+      border-color: var(--teal); 
+    }
+
+    /* ============================================================
+       SEGUIMIENTO EN TIEMPO REAL - NUEVO v6.0
+       ============================================================ */
+    .tracking-controls {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      z-index: 1500;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      min-width: 220px;
+      animation: slideInRight 0.3s ease;
+    }
+    
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .tracking-controls.visible {
+      display: flex;
+    }
+    
+    .tracking-label {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+    
+    .tracking-btn {
+      background: var(--bg-raised);
+      border: 1.5px solid var(--border);
+      color: var(--text-primary);
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-body);
+    }
+    
+    .tracking-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255,59,92,0.2);
+    }
+    
+    .tracking-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+    
+    .tracking-btn i {
+      font-size: 1rem;
+    }
+    
+    .tracking-status {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 8px;
+      background: var(--bg-deep);
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+    
+    .tracking-status.recording {
+      color: var(--accent);
+      font-weight: 600;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    
+    /* Marcador de ubicación del usuario */
+    .user-location-pulse {
+      width: 24px;
+      height: 24px;
+      background: var(--teal);
+      border: 4px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(0,240,192,0.6), 0 0 0 0 rgba(0,240,192,0.7);
+      animation: pulseLive 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulseLive {
+      0% {
+        box-shadow: 0 0 15px rgba(0,240,192,0.6), 0 0 0 0 rgba(0,240,192,0.7);
+      }
+      50% {
+        box-shadow: 0 0 20px rgba(0,240,192,0.8), 0 0 0 15px rgba(0,240,192,0);
+      }
+      100% {
+        box-shadow: 0 0 15px rgba(0,240,192,0.6), 0 0 0 0 rgba(0,240,192,0.7);
+      }
+    }
+    
+    /* Botón de ubicación mejorado */
+    .fab.locate-active {
+      background: var(--teal);
+      color: #fff;
+      animation: pulseLocation 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulseLocation {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,240,192,0.7); }
+      50% { box-shadow: 0 0 0 10px rgba(0,240,192,0); }
+    }
+    
+    /* Responsive para controles de seguimiento */
+    @media (max-width: 768px) {
+      .tracking-controls {
+        bottom: 60px;
+        right: 10px;
+        min-width: 180px;
+        padding: 10px;
+      }
+      
+      .tracking-btn {
+        padding: 8px 10px;
+        font-size: 0.75rem;
+      }
+      
+      .tracking-label {
+        font-size: 0.65rem;
+      }
+    }
+
+    /* ============================================================
+       RESIZABLE BOTTOM PANEL (Gemini)
+       ============================================================ */
+    #resizable-panel {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 40vh;
+      min-height: 60px;
+      max-height: 85vh;
+      z-index: 1003;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    #resize-handle {
+      width: 100%;
+      height: 18px;
+      background: var(--bg-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: row-resize;
+      touch-action: none;
+    }
+    #resize-handle::after {
+      content: '';
+      width: 40px; 
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .panel-header {
+      padding: 0 16px 12px;
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .search-bar {
+      position: relative;
+      width: 100%;
+    }
+    .search-bar input {
+      width: 100%;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      padding: 10px 10px 10px 36px;
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+    }
+    .search-bar input:focus { 
+      outline: none; 
+      border-color: var(--teal); 
+    }
+    .search-bar i { 
+      position: absolute; 
+      left: 12px; 
+      top: 50%; 
+      transform: translateY(-50%); 
+      color: var(--text-muted); 
+      font-size: 0.8rem; 
+    }
+
+    #selection-status {
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--teal);
+      font-size: 0.95rem;
+    }
+
+    #bottom-panel-content { 
+      flex: 1; 
+      overflow-y: auto; 
+      padding: 12px 16px; 
+    }
+
+    /* Categorías y Líneas (Gemini) */
+    .cat-group { margin-bottom: 8px; }
+    .cat-header {
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      padding: 12px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 0.75rem; 
+      font-weight: 700; 
+      text-transform: uppercase; 
+      letter-spacing: 0.05em;
+      cursor: pointer; 
+      user-select: none;
+      transition: .2s;
+    }
+    .cat-header:hover { 
+      background: var(--bg-hover); 
+      color: var(--text-primary); 
+    }
+    .cat-header.active { 
+      border-color: var(--border); 
+    }
+    .cat-body { 
+      display: none; 
+      padding-top: 6px; 
+    }
+    .cat-body.show { 
+      display: block; 
+      animation: slideDown 0.2s ease; 
+    }
+    @keyframes slideDown { 
+      from { opacity:0; transform:translateY(-5px) } 
+      to { opacity:1; transform:translateY(0) } 
+    }
+
+    .line-row {
+      display: flex; 
+      flex-direction: column;
+      background: transparent;
+      border-left: 2px solid var(--border);
+      margin-left: 10px; 
+      padding-left: 12px;
+      margin-bottom: 4px;
+    }
+    .line-btn {
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      padding: 8px 0;
+      cursor: pointer;
+      color: var(--text-primary); 
+      font-size: 0.9rem; 
+      font-weight: 500;
+      transition: .2s;
+    }
+    .line-btn:hover { color: var(--teal); }
+    .line-btn .meta { 
+      font-size: 0.7rem; 
+      color: var(--text-muted); 
+      margin-left: 8px; 
+      font-weight: 400; 
+    }
+
+    .ramal-container { 
+      padding-left: 10px; 
+      display: none; 
+    }
+    .ramal-item {
+      padding: 6px 10px;
+      margin: 2px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      transition: .15s;
+    }
+    .ramal-item:hover { 
+      background: var(--bg-hover); 
+      color: var(--text-primary); 
+    }
+    .ramal-item.active { 
+      background: var(--teal-dim); 
+      color: var(--teal); 
+      font-weight: 600; 
+    }
+
+    .mini-actions { 
+      opacity: 0; 
+      transition: opacity .2s; 
+      display: flex; 
+      gap: 8px; 
+    }
+    .line-btn:hover .mini-actions, 
+    .ramal-item:hover .mini-actions { 
+      opacity: 1; 
+    }
+    /* En móviles, mostrar siempre los botones */
+    @media (max-width: 768px) {
+      .mini-actions {
+        opacity: 1;
+      }
+    }
+    .mini-actions i { 
+      font-size: 0.75rem; 
+      cursor: pointer; 
+      color: var(--text-muted); 
+    }
+    .mini-actions i:hover { 
+      color: var(--accent); 
+    }
+
+    /* ============================================================
+       MODALES & TOASTS (Gemini)
+       ============================================================ */
+    .modal-overlay {
+      position: fixed; 
+      inset: 0;
+      background: rgba(0,0,0,0.8); 
+      backdrop-filter: blur(4px);
+      z-index: 3000;
+      display: none; 
+      align-items: center; 
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      width: 100%; 
+      max-width: 380px;
+      padding: 24px; 
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn { 
+      from { transform:scale(0.9); opacity:0 } 
+      to { transform:scale(1); opacity:1 } 
+    }
+
+    .modal-box h3 { 
+      font-family: var(--font-display); 
+      margin-bottom: 16px; 
+      font-size: 1.2rem; 
+    }
+
+    .input-group { 
+      margin-bottom: 16px; 
+    }
+    .input-group label { 
+      display: block; 
+      font-size: 0.75rem; 
+      color: var(--text-secondary); 
+      margin-bottom: 6px; 
+      font-weight: 600; 
+    }
+    .input-group input, 
+    .input-group select, 
+    .input-group textarea {
+      width: 100%; 
+      padding: 10px;
+      background: var(--bg-deep); 
+      border: 1px solid var(--border);
+      border-radius: 8px; 
+      color: #fff; 
+      font-family: var(--font-body);
+    }
+    .input-group input:focus { 
+      outline: none; 
+      border-color: var(--teal); 
+    }
+
+    .modal-footer { 
+      display: flex; 
+      justify-content: flex-end; 
+      gap: 10px; 
+      margin-top: 20px; 
+    }
+
+    /* Toast Notifications (Gemini) */
+    #toast-container {
+      position: fixed; 
+      bottom: 20px; 
+      left: 50%; 
+      transform: translateX(-50%);
+      z-index: 4000; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px;
+      pointer-events: none; 
+      width: 90%; 
+      max-width: 350px;
+    }
+    .toast {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      box-shadow: var(--shadow);
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+      animation: slideUpFade 0.3s ease forwards;
+      pointer-events: auto;
+    }
+    .toast.success { border-left: 4px solid var(--teal); }
+    .toast.error { border-left: 4px solid var(--accent); }
+    .toast i { font-size: 1rem; }
+    .toast.success i { color: var(--teal); }
+    .toast.error i { color: var(--accent); }
+    @keyframes slideUpFade { 
+      from { transform:translateY(20px); opacity:0 } 
+      to { transform:translateY(0); opacity:1 } 
+    }
+
+    /* Overrides Leaflet Draw (Gemini) */
+    .leaflet-draw-toolbar a { 
+      background-color: var(--bg-raised) !important; 
+      border-color: var(--border) !important; 
+      color: #fff !important; 
+    }
+    .leaflet-draw-toolbar a:hover { 
+      background-color: var(--bg-hover) !important; 
+    }
+    .leaflet-draw-actions { 
+      left: 34px !important; 
+    }
+    .leaflet-draw-actions li a { 
+      background-color: var(--bg-surface) !important; 
+      color: #fff !important; 
+      border-color: var(--border) !important; 
+    }
+
+    /* ============================================================
+       PANEL DE GUÍA INICIAL
+       ============================================================ */
+    #guide-panel {
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 320px;
+      height: 100vh;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      z-index: 3500;
+      overflow-y: auto;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+    }
+
+    #guide-panel.open {
+      left: 0;
+    }
+
+    .guide-header {
+      padding: 20px;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .guide-header h2 {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .guide-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 30px;
+      height: 30px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .guide-close:hover {
+      background: rgba(255,255,255,0.3);
+      transform: rotate(90deg);
+    }
+
+    .guide-content {
+      padding: 20px;
+    }
+
+    .guide-section {
+      margin-bottom: 24px;
+    }
+
+    .guide-section h3 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--teal);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-section h3 i {
+      font-size: 1.2rem;
+    }
+
+    .guide-section p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .guide-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .guide-list li {
+      padding: 10px;
+      margin-bottom: 8px;
+      background: var(--bg-raised);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .guide-list li i {
+      color: var(--accent);
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .guide-shortcut {
+      background: var(--bg-deep);
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .guide-shortcut-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .guide-shortcut-key {
+      background: var(--bg-raised);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      color: var(--teal);
+      border: 1px solid var(--border);
+    }
+
+    /* Overlay para cerrar el panel al hacer clic fuera */
+    #guide-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 3400;
+      display: none;
+    }
+
+    #guide-overlay.visible {
+      display: block;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .home-hero h1 {
+        font-size: 2rem;
+      }
+      .logo-badge {
+        width: 72px;
+        height: 72px;
+        font-size: 2rem;
+      }
+      .config-section {
+        padding: 16px;
+      }
+      .lang-selector-home {
+        top: 10px;
+        right: 10px;
+        gap: 4px;
+      }
+      .lang-btn {
+        padding: 4px 8px;
+        font-size: 0.65rem;
+      }
+    }
+    
+    @media (max-width: 420px) { 
+      .menu-grid { 
+        grid-template-columns: 1fr 1fr; 
+        gap: 10px; 
+      }
+      .menu-card {
+        padding: 20px 12px;
+      }
+      .menu-card i {
+        font-size: 1.4rem;
+      }
+      .menu-card span {
+        font-size: 0.8rem;
+      }
+      #guide-panel {
+        width: 90%;
+        max-width: 320px;
+      }
+      .home-hero h1 {
+        font-size: 1.8rem;
+      }
+      .home-hero p {
+        font-size: 0.85rem;
+      }
+    }
+  
+    /* ============================================================
+       CONFIGURACIÓN REGIONAL - NUEVAS FUNCIONALIDADES
+       ============================================================ */
+    .config-section {
+      width: 100%;
+      max-width: 600px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      z-index: 2;
+      position: relative;
+    }
+
+    .config-title {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .config-title i {
+      color: var(--accent);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-select, .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .form-select:hover, .form-input:hover {
+      border-color: var(--accent);
+    }
+
+    .form-select:focus, .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .form-select option {
+      background: var(--bg-raised);
+      color: var(--text-primary);
+    }
+
+    .form-select:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Tipos de transporte */
+    .transport-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+    }
+
+    .transport-btn {
+      background: var(--bg-raised);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .transport-btn i {
+      font-size: 1.5rem;
+      transition: transform 0.3s;
+    }
+
+    .transport-btn:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255,59,92,0.2);
+    }
+
+    .transport-btn:hover i {
+      transform: scale(1.1);
+    }
+
+    .transport-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .transport-btn.active i {
+      transform: scale(1.15);
+    }
+
+    /* Botón Home en header */
+    .home-btn {
+      width: 36px; 
+      height: 36px;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--bg-raised);
+      color: var(--text-secondary);
+      cursor: pointer; 
+      transition: .2s;
+      border: none;
+    }
+    
+    .home-btn:hover { 
+      color: #fff; 
+      background: var(--bg-hover);
+      transform: scale(1.1);
+    }
+
+    /* Responsive para nueva sección */
+    @media (max-width: 768px) {
+      .config-section {
+        padding: 20px;
+      }
+
+      .transport-types {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+
+    /* ============================================================
+       COLORES DINÁMICOS POR TIPO DE TRANSPORTE
+       ============================================================ */
+    :root {
+      /* Colores por tipo de transporte */
+      --color-bus: #ff3b5c;
+      --color-bus-dim: rgba(255, 59, 92, 0.15);
+      --color-bus-glow: rgba(255, 59, 92, 0.4);
+      
+      --color-metro: #00f0c0;
+      --color-metro-dim: rgba(0, 240, 192, 0.12);
+      --color-metro-glow: rgba(0, 240, 192, 0.4);
+      
+      --color-tren: #f0a500;
+      --color-tren-dim: rgba(240, 165, 0, 0.12);
+      --color-tren-glow: rgba(240, 165, 0, 0.4);
+      
+      --color-ferry: #4a9eff;
+      --color-ferry-dim: rgba(74, 158, 255, 0.12);
+      --color-ferry-glow: rgba(74, 158, 255, 0.4);
+      
+      --color-tranvia: #9b59b6;
+      --color-tranvia-dim: rgba(155, 89, 182, 0.12);
+      --color-tranvia-glow: rgba(155, 89, 182, 0.4);
+      
+      --color-trolley: #e67e22;
+      --color-trolley-dim: rgba(230, 126, 34, 0.12);
+      --color-trolley-glow: rgba(230, 126, 34, 0.4);
+    }
+
+    /* Aplicar colores dinámicos según tipo de transporte */
+    body[data-transport="bus"] {
+      --accent: var(--color-bus);
+      --accent-dim: var(--color-bus-dim);
+      --accent-glow: var(--color-bus-glow);
+    }
+    
+    body[data-transport="metro"] {
+      --accent: var(--color-metro);
+      --accent-dim: var(--color-metro-dim);
+      --accent-glow: var(--color-metro-glow);
+    }
+    
+    body[data-transport="tren"] {
+      --accent: var(--color-tren);
+      --accent-dim: var(--color-tren-dim);
+      --accent-glow: var(--color-tren-glow);
+    }
+    
+    body[data-transport="ferry"] {
+      --accent: var(--color-ferry);
+      --accent-dim: var(--color-ferry-dim);
+      --accent-glow: var(--color-ferry-glow);
+    }
+    
+    body[data-transport="tranvia"] {
+      --accent: var(--color-tranvia);
+      --accent-dim: var(--color-tranvia-dim);
+      --accent-glow: var(--color-tranvia-glow);
+    }
+    
+    body[data-transport="trolley"] {
+      --accent: var(--color-trolley);
+      --accent-dim: var(--color-trolley-dim);
+      --accent-glow: var(--color-trolley-glow);
+    }
+
+    /* Indicador de línea verdadera */
+    .line-btn.official::before {
+      content: '✓';
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, var(--teal), #00d4a0);
+      color: white;
+      border-radius: 50%;
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin-right: 8px;
+      box-shadow: 0 2px 8px rgba(0, 240, 192, 0.3);
+    }
+
+    .line-btn.official {
+      font-weight: 600;
+      color: var(--teal) !important;
+    }
+
+    .line-btn.official .meta {
+      color: var(--teal) !important;
+      opacity: 0.8;
+    }
+
+    /* Badge "OFICIAL" en líneas verdaderas */
+    .official-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--teal), #00d4a0);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      box-shadow: 0 2px 6px rgba(0, 240, 192, 0.25);
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- Toast Container (Gemini) -->
+<div id="toast-container"></div>
+
+<!-- Guide Overlay -->
+<div id="guide-overlay" onclick="toggleGuide()"></div>
+
+<!-- Panel de Guía Inicial -->
+<div id="guide-panel">
+  <div class="guide-header">
+    <h2><i class="fas fa-book-open"></i> Guía de Uso</h2>
+    <button class="guide-close" onclick="toggleGuide()" aria-label="Cerrar guía">
+      <i class="fas fa-times"></i>
+    </button>
+    <p style="font-size: 0.85rem; opacity: 0.9; margin: 0;">Aprende a usar Bus Creator</p>
+  </div>
+  
+  <div class="guide-content">
+    <div class="guide-section">
+      <h3><i class="fas fa-rocket"></i> Inicio Rápido</h3>
+      <p>Bienvenido a Bus Creator. Esta herramienta te permite crear y visualizar líneas de transporte público de manera interactiva.</p>
+      <ul class="guide-list">
+        <li><i class="fas fa-circle"></i> <strong>Editor:</strong> Crea y edita líneas de bus</li>
+        <li><i class="fas fa-circle"></i> <strong>Visor:</strong> Visualiza rutas sin editar</li>
+        <li><i class="fas fa-circle"></i> <strong>Exportar:</strong> Guarda tus líneas en JSON</li>
+        <li><i class="fas fa-circle"></i> <strong>Importar:</strong> Carga líneas existentes</li>
+      </ul>
+    </div>
+
+    <div class="guide-section">
+      <h3><i class="fas fa-edit"></i> Crear Líneas</h3>
+      <p>Pasos para crear una nueva línea:</p>
+      <ul class="guide-list">
+        <li><i class="fas fa-1"></i> Haz clic en el botón <strong>+</strong> flotante</li>
+        <li><i class="fas fa-2"></i> Ingresa el nombre y empresa</li>
+        <li><i class="fas fa-3"></i> Selecciona el tipo de servicio</li>
+        <li><i class="fas fa-4"></i> Dibuja la ruta en el mapa</li>
+        <li><i class="fas fa-5"></i> Guarda los cambios</li>
+      </ul>
+    </div>
+
+    <div class="guide-section">
+      <h3><i class="fas fa-map"></i> Herramientas del Mapa</h3>
+      <ul class="guide-list">
+        <li><i class="fas fa-pencil-alt"></i> Dibuja líneas en el mapa</li>
+        <li><i class="fas fa-map-marker-alt"></i> Añade paradas con marcadores</li>
+        <li><i class="fas fa-edit"></i> Edita rutas existentes</li>
+        <li><i class="fas fa-trash"></i> Elimina elementos</li>
+        <li><i class="fas fa-location-arrow"></i> Ubícate en el mapa</li>
+      </ul>
+    </div>
+
+    <div class="guide-section">
+      <h3><i class="fas fa-keyboard"></i> Atajos de Teclado</h3>
+      <div class="guide-shortcut">
+        <div class="guide-shortcut-item">
+          <span>Ir a inicio</span>
+          <span class="guide-shortcut-key">H</span>
+        </div>
+        <div class="guide-shortcut-item">
+          <span>Abrir editor</span>
+          <span class="guide-shortcut-key">E</span>
+        </div>
+        <div class="guide-shortcut-item">
+          <span>Abrir visor</span>
+          <span class="guide-shortcut-key">V</span>
+        </div>
+        <div class="guide-shortcut-item">
+          <span>Cambiar idioma (1-5)</span>
+          <span class="guide-shortcut-key">1-5</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <h3><i class="fas fa-lightbulb"></i> Consejos</h3>
+      <ul class="guide-list">
+        <li><i class="fas fa-star"></i> Usa nombres descriptivos para tus líneas</li>
+        <li><i class="fas fa-star"></i> Guarda frecuentemente tus cambios</li>
+        <li><i class="fas fa-star"></i> Exporta regularmente para backup</li>
+        <li><i class="fas fa-star"></i> Usa el buscador para encontrar líneas rápido</li>
+        <li><i class="fas fa-star"></i> El panel inferior es redimensionable</li>
+      </ul>
+    </div>
+
+    <div class="guide-section">
+      <h3><i class="fas fa-database"></i> Gestión de Datos</h3>
+      <p>Tus datos se guardan automáticamente en tu navegador. Puedes:</p>
+      <ul class="guide-list">
+        <li><i class="fas fa-download"></i> Exportar todo a un archivo JSON</li>
+        <li><i class="fas fa-upload"></i> Importar desde archivos existentes</li>
+        <li><i class="fas fa-sync"></i> Cargar datos de demostración</li>
+        <li><i class="fas fa-trash-alt"></i> Borrar todos los datos</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- HOME SCREEN -->
+<div id="home-screen">
+  <!-- Language Switcher (solo en home) -->
+  <div class="lang-selector-home">
+    <button class="lang-btn active" onclick="setLang('es')" aria-label="Español">
+      <span class="lang-flag">🇪🇸</span> ES
+    </button>
+    <button class="lang-btn" onclick="setLang('en')" aria-label="English">
+      <span class="lang-flag">🇬🇧</span> EN
+    </button>
+    <button class="lang-btn" onclick="setLang('pt')" aria-label="Português">
+      <span class="lang-flag">🇧🇷</span> PT
+    </button>
+    <button class="lang-btn" onclick="setLang('ru')" aria-label="Русский">
+      <span class="lang-flag">🇷🇺</span> RU
+    </button>
+    <button class="lang-btn" onclick="setLang('de')" aria-label="Deutsch">
+      <span class="lang-flag">🇩🇪</span> DE
+    </button>
+  </div>
+
+  <div class="home-hero">
+    <div class="logo-badge">
+      <i class="fas fa-bus-alt"></i>
+    </div>
+    <h1>Bus Creator</h1>
+    <p data-i18n="home.subtitle">Diseña, edita y simula recorridos de transporte.</p>
+    <div class="stats-pill" id="home-stats-pill">
+      <i class="fas fa-database"></i>
+      <span>Cargando datos...</span>
+    </div>
+  </div>
+
+
+  <!-- Configuración Regional - NUEVA FUNCIONALIDAD -->
+  <div class="config-section">
+    <div class="config-title">
+      <i class="fas fa-globe"></i>
+      <span data-i18n="config.title">Configuración Regional</span>
+    </div>
+
+    <div class="form-group">
+      <label data-i18n="config.country">País</label>
+      <select id="country-select" class="form-select">
+        <option value="">Selecciona un país</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label data-i18n="config.region">Estado/Provincia/Ciudad</label>
+      <select id="region-select" class="form-select" disabled>
+        <option value="">Primero selecciona un país</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label data-i18n="config.transport">Tipo de Transporte</label>
+      <div class="transport-types" id="transport-types">
+        <div class="transport-btn" data-type="bus">
+          <i class="fas fa-bus"></i>
+          <span data-i18n="transport.bus">Bus</span>
+        </div>
+        <div class="transport-btn" data-type="metro">
+          <i class="fas fa-subway"></i>
+          <span data-i18n="transport.metro">Metro</span>
+        </div>
+        <div class="transport-btn" data-type="tren">
+          <i class="fas fa-train"></i>
+          <span data-i18n="transport.train">Tren</span>
+        </div>
+        <div class="transport-btn" data-type="ferry">
+          <i class="fas fa-ship"></i>
+          <span data-i18n="transport.ferry">Ferry</span>
+        </div>
+        <div class="transport-btn" data-type="tranvia">
+          <i class="fas fa-tram"></i>
+          <span data-i18n="transport.tram">Tranvía</span>
+        </div>
+        <div class="transport-btn" data-type="trolley">
+          <i class="fas fa-bus-alt"></i>
+          <span data-i18n="transport.trolley">Trolley</span>
+        </div>
+        <div class="transport-btn" data-type="funicular">
+          <i class="fas fa-cable-car"></i>
+          <span data-i18n="transport.funicular">Funicular</span>
+        </div>
+        <div class="transport-btn" data-type="teleferico">
+          <i class="fas fa-mountain"></i>
+          <span data-i18n="transport.cablecar">Teleférico</span>
+        </div>
+        <div class="transport-btn" data-type="brt">
+          <i class="fas fa-bus-simple"></i>
+          <span data-i18n="transport.brt">BRT</span>
+        </div>
+        <div class="transport-btn" data-type="bici">
+          <i class="fas fa-bicycle"></i>
+          <span data-i18n="transport.bike">Bici</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-grid">
+    <div class="menu-card" onclick="openApp('editor')" tabindex="0" role="button" aria-label="Abrir editor">
+      <i class="fas fa-pen-nib"></i>
+      <span data-i18n="home.editor">Editor</span>
+    </div>
+    <div class="menu-card" onclick="openApp('viewer')" tabindex="0" role="button" aria-label="Abrir visor">
+      <i class="fas fa-map"></i>
+      <span data-i18n="home.viewer">Visor</span>
+    </div>
+    <div class="menu-card" onclick="openExportModal()" tabindex="0" role="button" aria-label="Exportar">
+      <i class="fas fa-file-export"></i>
+      <span data-i18n="home.export">Exportar</span>
+    </div>
+    <div class="menu-card" onclick="openImportModal()" tabindex="0" role="button" aria-label="Importar">
+      <i class="fas fa-file-import"></i>
+      <span data-i18n="home.import">Importar</span>
+    </div>
+  </div>
+
+  <!-- Home Actions (ChatGPT) -->
+  <div id="home-actions">
+    <button class="btn" onclick="seedDemoData()" aria-label="Cargar datos de ejemplo">
+      <i class="fas fa-magic"></i> Cargar demo
+    </button>
+    <button class="btn" onclick="clearDataConfirm()" aria-label="Borrar datos">
+      <i class="fas fa-trash"></i> Borrar todo
+    </button>
+  </div>
+
+  <!-- Botón de guía flotante -->
+  <button class="guide-btn" onclick="toggleGuide()" aria-label="Abrir guía de uso">
+    <i class="fas fa-question"></i>
+  </button>
+</div>
+
+<!-- APP INTERFACE -->
+<div id="app-interface" aria-hidden="true">
+  <header>
+    <button class="back-btn" onclick="goHome()" aria-label="Volver">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h2 id="app-title"></h2>
+
+    <button id="delete-multi-btn" class="action-btn danger" onclick="toggleMultiDelete()">
+      <i class="fas fa-trash-alt"></i> Borrar (<span id="delete-count">0</span>)
+    </button>
+    <button id="save-draw-btn" class="action-btn primary" onclick="saveCurrentRamalDraw()" style="display:none">
+      <i class="fas fa-save"></i> <span data-i18n="app.save">Guardar</span>
+    </button>
+  </header>
+
+  <div id="map-container">
+    <div id="map" role="application" aria-label="Mapa"></div>
+
+    <div class="fab-stack">
+      <div class="fab" id="locate-fab" onclick="locateUser()" title="Ubícame" aria-label="Ubicarme en el mapa">
+        <i class="fas fa-location-arrow"></i>
+      </div>
+      <div class="fab main" id="fabCreate" onclick="showCreateOptions()" style="display:none" aria-label="Crear nueva línea">
+        <i class="fas fa-plus"></i>
+      </div>
+    </div>
+    
+    <!-- NUEVO: Controles de seguimiento en tiempo real v6.0 -->
+    <div class="tracking-controls" id="tracking-controls">
+      <div class="tracking-label">Seguimiento GPS</div>
+      <button class="tracking-btn" id="start-tracking-btn" onclick="startTracking()">
+        <i class="fas fa-play"></i>
+        <span>Iniciar</span>
+      </button>
+      <button class="tracking-btn" id="stop-tracking-btn" onclick="stopTracking()" style="display: none;">
+        <i class="fas fa-stop"></i>
+        <span>Detener</span>
+      </button>
+      <button class="tracking-btn" id="save-route-btn" onclick="saveTrackedRoute()" style="display: none;">
+        <i class="fas fa-save"></i>
+        <span>Guardar</span>
+      </button>
+      <div class="tracking-status" id="tracking-status">
+        Solo para Bus/Trolley
+      </div>
+    </div>
+  </div>
+
+  <div id="resizable-panel">
+    <div id="resize-handle"></div>
+    <div class="panel-header">
+      <div id="selection-status" data-i18n="app.selectLine">Selecciona una línea</div>
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="lineSearchInput" placeholder="Buscar línea o ramal..." onkeyup="filterLines()">
+      </div>
+    </div>
+    <div id="bottom-panel-content">
+      <div id="categories-container"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalCreateLine">
+  <div class="modal-box">
+    <h3 data-i18n="modal.newLine">Nueva Línea</h3>
+    <div class="input-group">
+      <label data-i18n="modal.lineName">Nombre</label>
+      <input type="text" id="newLineName" placeholder="Ej: Línea 102">
+    </div>
+    <div class="input-group">
+      <label data-i18n="modal.company">Empresa</label>
+      <input type="text" id="newLineCompany" placeholder="Ej: El Corcel S.A.">
+    </div>
+    <div class="input-group">
+      <label data-i18n="modal.serviceType">Servicio</label>
+      <select id="newLineCategory">
+        <option value="Urbano" data-i18n="cat.urban">Urbano</option>
+        <option value="InterUrbano" data-i18n="cat.interurban">Interurbano</option>
+        <option value="Media Distancia" data-i18n="cat.medium">Media Distancia</option>
+        <option value="Larga Distancia" data-i18n="cat.long">Larga Distancia</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <input type="checkbox" id="newLineOfficial">
+        <span data-i18n="modal.official">Línea oficial</span>
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()" data-i18n="modal.cancel">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmCreateLine()" data-i18n="modal.create">Crear</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalCreateRamal">
+  <div class="modal-box">
+    <h3 data-i18n="modal.newBranch">Nuevo Ramal</h3>
+    <div class="input-group">
+      <label data-i18n="modal.branchName">Nombre Ramal</label>
+      <input type="text" id="newRamalName" placeholder="Ej: Ramal Centro">
+    </div>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()" data-i18n="modal.cancel">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmCreateRamal()" data-i18n="modal.create">Crear</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalExport">
+  <div class="modal-box">
+    <h3 data-i18n="modal.exportLines">Exportar Datos</h3>
+    <div id="exportChecklist" style="max-height:200px; overflow-y:auto; border:1px solid var(--border); padding:10px; margin-bottom:15px; border-radius:8px;"></div>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()" data-i18n="modal.close">Cerrar</button>
+      <button class="action-btn primary" onclick="downloadJSON()" data-i18n="modal.downloadJSON">Descargar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalImport">
+  <div class="modal-box">
+    <h3 data-i18n="modal.importLines">Importar Datos</h3>
+    <div class="input-group">
+      <label>Seleccionar archivo JSON</label>
+      <input type="file" id="importFileInput" accept=".json" onchange="readJSONFile(this)">
+    </div>
+    <div class="input-group">
+      <label>O pega el código JSON</label>
+      <textarea id="importInput" rows="4" placeholder="JSON Code..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()" data-i18n="modal.cancel">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmImport()" data-i18n="modal.import">Importar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Renombrar Línea/Ramal -->
+<div class="modal-overlay" id="modalRename">
+  <div class="modal-box">
+    <h3>Editar / Renombrar</h3>
+    <input type="hidden" id="renameType">
+    <input type="hidden" id="renameOldName">
+    <input type="hidden" id="renameCat">
+    <input type="hidden" id="renameParentLine">
+    
+    <div class="input-group">
+      <label>Nombre</label>
+      <input type="text" id="renameNewName">
+    </div>
+    
+    <div id="renameLineFields" style="display:none">
+      <div class="input-group">
+        <label>Empresa</label>
+        <input type="text" id="renameNewCompany">
+      </div>
+      <div class="input-group">
+        <label>Tipo de Servicio (Mover línea)</label>
+        <select id="renameNewCategory">
+          <option value="Urbano">Urbano</option>
+          <option value="InterUrbano">InterUrbano</option>
+          <option value="Media Distancia">Media Distancia</option>
+          <option value="Larga Distancia">Larga Distancia</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="renameNewOfficial"> 
+          <span>Línea Verdadera</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmRename()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Copiar Ramal -->
+<div class="modal-overlay" id="modalCopyRamal">
+  <div class="modal-box">
+    <h3>Copiar Ramal</h3>
+    <p style="font-size:0.9rem; margin-bottom: 15px;">Ramal origen: <b id="copySourceRamal"></b></p>
+    <input type="hidden" id="copySourceLine">
+    <input type="hidden" id="copySourceCat">
+    
+    <div class="input-group">
+      <label>Línea de Destino:</label>
+      <select id="copyTargetLineSelect"></select>
+    </div>
+    
+    <div class="input-group">
+      <label>Nuevo Nombre (Opcional):</label>
+      <input type="text" id="copyNewName" placeholder="Dejar vacío para mantener nombre">
+    </div>
+    
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmCopyRamal()">Copiar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script>
+/* ============================================================
+   I18N DATA - Multiidioma mejorado
+   ============================================================ */
+const i18nData = {
+  es: {
+    
+    "config.title": "Configuración Regional",
+    "config.country": "País",
+    "config.region": "Estado/Provincia/Ciudad",
+    "config.transport": "Tipo de Transporte",
+    "transport.bus": "Bus",
+    "transport.metro": "Metro",
+    "transport.train": "Tren",
+    "transport.ferry": "Ferry",
+    "transport.tram": "Tranvía",
+    "transport.trolley": "Trolley",
+
+    "home.subtitle": "Diseña, edita y simula recorridos de transporte.",
+    "home.editor": "Editor", 
+    "home.viewer": "Visor", 
+    "home.export": "Exportar", 
+    "home.import": "Importar",
+    "app.selectLine": "Selecciona una línea", 
+    "app.save": "Guardar", 
+    "cat.urban": "Urbano", 
+    "cat.interurban": "Interurbano", 
+    "cat.medium": "Media Distancia", 
+    "cat.long": "Larga Distancia", 
+    "modal.newLine": "Nueva Línea", 
+    "modal.create": "Crear", 
+    "modal.cancel": "Cancelar", 
+    "modal.lineName": "Nombre", 
+    "modal.company": "Empresa", 
+    "modal.serviceType": "Servicio",
+    "modal.official": "Línea oficial",
+    "modal.newBranch": "Nuevo Ramal", 
+    "modal.branchName": "Nombre Ramal", 
+    "modal.exportLines": "Exportar Datos",
+    "modal.downloadJSON": "Descargar", 
+    "modal.importLines": "Importar Datos", 
+    "modal.import": "Importar", 
+    "modal.close": "Cerrar"
+  },
+  en: {
+    
+    "config.title": "Configuración Regional",
+    "config.country": "País",
+    "config.region": "Estado/Provincia/Ciudad",
+    "config.transport": "Tipo de Transporte",
+    "transport.bus": "Bus",
+    "transport.metro": "Metro",
+    "transport.train": "Tren",
+    "transport.ferry": "Ferry",
+    "transport.tram": "Tranvía",
+    "transport.trolley": "Trolley",
+
+    "home.subtitle": "Design, edit and simulate transport routes.",
+    "home.editor": "Editor", 
+    "home.viewer": "Viewer", 
+    "home.export": "Export", 
+    "home.import": "Import",
+    "app.selectLine": "Select a line", 
+    "app.save": "Save", 
+    "cat.urban": "Urban", 
+    "cat.interurban": "Interurban", 
+    "cat.medium": "Medium Dist", 
+    "cat.long": "Long Dist", 
+    "modal.newLine": "New Line", 
+    "modal.create": "Create", 
+    "modal.cancel": "Cancel", 
+    "modal.lineName": "Name", 
+    "modal.company": "Company", 
+    "modal.serviceType": "Service",
+    "modal.official": "Official line",
+    "modal.newBranch": "New Branch", 
+    "modal.branchName": "Branch Name", 
+    "modal.exportLines": "Export Data",
+    "modal.downloadJSON": "Download", 
+    "modal.importLines": "Import Data", 
+    "modal.import": "Import", 
+    "modal.close": "Close"
+  },
+  pt: {
+    
+    "config.title": "Configuración Regional",
+    "config.country": "País",
+    "config.region": "Estado/Provincia/Ciudad",
+    "config.transport": "Tipo de Transporte",
+    "transport.bus": "Bus",
+    "transport.metro": "Metro",
+    "transport.train": "Tren",
+    "transport.ferry": "Ferry",
+    "transport.tram": "Tranvía",
+    "transport.trolley": "Trolley",
+
+    "home.subtitle": "Projete, edite e simule rotas de transporte.",
+    "home.editor": "Editor", 
+    "home.viewer": "Visualizador", 
+    "home.export": "Exportar", 
+    "home.import": "Importar",
+    "app.selectLine": "Selecione uma linha", 
+    "app.save": "Salvar", 
+    "cat.urban": "Urbano", 
+    "cat.interurban": "Interurbano", 
+    "cat.medium": "Média Dist", 
+    "cat.long": "Longa Dist", 
+    "modal.newLine": "Nova Linha", 
+    "modal.create": "Criar", 
+    "modal.cancel": "Cancelar", 
+    "modal.lineName": "Nome", 
+    "modal.company": "Empresa", 
+    "modal.serviceType": "Serviço",
+    "modal.official": "Linha oficial",
+    "modal.newBranch": "Novo Ramal", 
+    "modal.branchName": "Nome do Ramal", 
+    "modal.exportLines": "Exportar Dados",
+    "modal.downloadJSON": "Baixar", 
+    "modal.importLines": "Importar Dados", 
+    "modal.import": "Importar", 
+    "modal.close": "Fechar"
+  },
+  ru: {
+    
+    "config.title": "Configuración Regional",
+    "config.country": "País",
+    "config.region": "Estado/Provincia/Ciudad",
+    "config.transport": "Tipo de Transporte",
+    "transport.bus": "Bus",
+    "transport.metro": "Metro",
+    "transport.train": "Tren",
+    "transport.ferry": "Ferry",
+    "transport.tram": "Tranvía",
+    "transport.trolley": "Trolley",
+
+    "home.subtitle": "Создавайте, редактируйте и симулируйте маршруты транспорта.",
+    "home.editor": "Редактор", 
+    "home.viewer": "Просмотр", 
+    "home.export": "Экспорт", 
+    "home.import": "Импорт",
+    "app.selectLine": "Выберите линию", 
+    "app.save": "Сохранить", 
+    "cat.urban": "Городской", 
+    "cat.interurban": "Пригородный", 
+    "cat.medium": "Средн. дист", 
+    "cat.long": "Дальн. дист", 
+    "modal.newLine": "Новая линия", 
+    "modal.create": "Создать", 
+    "modal.cancel": "Отмена", 
+    "modal.lineName": "Название", 
+    "modal.company": "Компания", 
+    "modal.serviceType": "Сервис",
+    "modal.official": "Официальная линия",
+    "modal.newBranch": "Новое ответвление", 
+    "modal.branchName": "Название ответвления", 
+    "modal.exportLines": "Экспорт данных",
+    "modal.downloadJSON": "Скачать", 
+    "modal.importLines": "Импорт данных", 
+    "modal.import": "Импорт", 
+    "modal.close": "Закрыть"
+  },
+  de: {
+    
+    "config.title": "Configuración Regional",
+    "config.country": "País",
+    "config.region": "Estado/Provincia/Ciudad",
+    "config.transport": "Tipo de Transporte",
+    "transport.bus": "Bus",
+    "transport.metro": "Metro",
+    "transport.train": "Tren",
+    "transport.ferry": "Ferry",
+    "transport.tram": "Tranvía",
+    "transport.trolley": "Trolley",
+
+    "home.subtitle": "Entwerfen, bearbeiten und simulieren Sie Transportrouten.",
+    "home.editor": "Editor", 
+    "home.viewer": "Betrachter", 
+    "home.export": "Exportieren", 
+    "home.import": "Importieren",
+    "app.selectLine": "Wählen Sie eine Linie", 
+    "app.save": "Speichern", 
+    "cat.urban": "Städtisch", 
+    "cat.interurban": "Überlandverkehr", 
+    "cat.medium": "Mittlere Dist", 
+    "cat.long": "Lange Dist", 
+    "modal.newLine": "Neue Linie", 
+    "modal.create": "Erstellen", 
+    "modal.cancel": "Abbrechen", 
+    "modal.lineName": "Name", 
+    "modal.company": "Firma", 
+    "modal.serviceType": "Service",
+    "modal.official": "Offizielle Linie",
+    "modal.newBranch": "Neue Zweigstelle", 
+    "modal.branchName": "Zweigstellenname", 
+    "modal.exportLines": "Daten exportieren",
+    "modal.downloadJSON": "Herunterladen", 
+    "modal.importLines": "Daten importieren", 
+    "modal.import": "Importieren", 
+    "modal.close": "Schließen"
+  }
+};
+
+let currentLang = 'es';
+let rawDB = JSON.parse(localStorage.getItem('redbus_sim_db')) || {
+  "Tucumán": {
+    "Urbano": {},
+    "InterUrbano": {},
+    "Media Distancia": {},
+    "Larga Distancia": {}
+  }
+};
+let db = rawDB;
+const currentProvince = "Tucumán";
+const availableCategories = ["Urbano", "InterUrbano", "Media Distancia", "Larga Distancia"];
+
+/* ============================================================
+   FILTRADO POR REGIÓN Y TIPO DE TRANSPORTE
+   ============================================================ */
+let currentRegionKey = 'Tucumán'; // Default
+
+function updateCurrentRegionKey() {
+  if (selectedCountry && selectedRegion) {
+    currentRegionKey = `${selectedCountry}_${selectedRegion}`;
+  } else {
+    currentRegionKey = 'Tucumán';
+  }
+}
+
+function getFilteredDB() {
+  // Si no hay región seleccionada, usar Tucumán original
+  if (!selectedCountry || !selectedRegion) {
+    return db[currentProvince];
+  }
+  
+  // Obtener o crear la DB filtrada para esta región
+  const regionalDB = JSON.parse(localStorage.getItem('redbus_regional_db')) || {};
+  const key = currentRegionKey;
+  
+  if (!regionalDB[key]) {
+    regionalDB[key] = {
+      "Urbano": {},
+      "InterUrbano": {},
+      "Media Distancia": {},
+      "Larga Distancia": {}
+    };
+    localStorage.setItem('redbus_regional_db', JSON.stringify(regionalDB));
+  }
+  
+  return regionalDB[key];
+}
+
+function saveFilteredDB(data) {
+  if (!selectedCountry || !selectedRegion) {
+    // Guardar en DB original
+    db[currentProvince] = data;
+    localStorage.setItem('redbus_sim_db', JSON.stringify(db));
+    return;
+  }
+  
+  // Guardar en DB regional
+  const regionalDB = JSON.parse(localStorage.getItem('redbus_regional_db')) || {};
+  regionalDB[currentRegionKey] = data;
+  localStorage.setItem('redbus_regional_db', JSON.stringify(regionalDB));
+}
+
+
+
+
+/* ============================================================
+   FUNCIONES CORE
+   ============================================================ */
+function t(key) { 
+  return (i18nData[currentLang] || i18nData.es)[key] || key; 
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const translation = t(key);
+    if (el.tagName === 'INPUT' && el.type === 'text') {
+      el.placeholder = translation;
+    } else {
+      el.textContent = translation;
+    }
+  });
+}
+
+function setLang(l) {
+  currentLang = l;
+  document.documentElement.lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes(l.toUpperCase()));
+  });
+  applyI18n();
+  showToast('Idioma: ' + l.toUpperCase());
+}
+
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> <span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(20px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function updateHomeStats() {
+  updateCurrentRegionKey();
+  const filteredDB = getFilteredDB();
+  
+  let count = 0;
+  availableCategories.forEach(c => {
+    if(filteredDB[c]) count += Object.keys(filteredDB[c]).length;
+  });
+  const statsEl = document.getElementById('home-stats-pill');
+  if (statsEl) {
+    const regionText = selectedCountry && selectedRegion ? ` (${selectedRegion})` : '';
+    statsEl.innerHTML = `<i class="fas fa-database"></i> <span>${count} Líneas${regionText}</span>`;
+  }
+}
+
+/* ============================================================
+   PANEL DE GUÍA
+   ============================================================ */
+function toggleGuide() {
+  const panel = document.getElementById('guide-panel');
+  const overlay = document.getElementById('guide-overlay');
+  const isOpen = panel.classList.contains('open');
+  
+  if (isOpen) {
+    panel.classList.remove('open');
+    overlay.classList.remove('visible');
+  } else {
+    panel.classList.add('open');
+    overlay.classList.add('visible');
+  }
+}
+
+
+/* ============================================================
+   MAP SETUP
+   ============================================================ */
+let map, drawnItems, drawControl, busMarker;
+
+function initMap() {
+  if (map) return;
+  
+  // Usar coordenadas regionales si están disponibles, sino usar Tucumán por defecto
+  let lat = -26.8241, lng = -65.2226, zoom = 13;
+  if (regionalMapCenter) {
+    lat = regionalMapCenter.lat;
+    lng = regionalMapCenter.lng;
+    zoom = regionalMapCenter.zoom;
+  }
+  
+  map = L.map('map', { zoomControl: false }).setView([lat, lng], zoom);
+  
+  // CartoDB Dark Matter para un look profesional (Gemini)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 19
+  }).addTo(map);
+
+  drawnItems = new L.FeatureGroup().addTo(map);
+  drawControl = new L.Control.Draw({
+    position: 'topright',
+    draw: {
+      polyline: { shapeOptions: { color: '#ff3b5c', weight: 4 } },
+      marker: true,
+      polygon: false,
+      rectangle: false,
+      circle: false,
+      circlemarker: false
+    },
+    edit: { featureGroup: drawnItems }
+  });
+
+  map.on(L.Draw.Event.CREATED, e => {
+    const layer = e.layer;
+    drawnItems.addLayer(layer);
+    
+    // Agregar evento de clic para modo borrado múltiple
+    layer.on('click', function() {
+      if(isDeleteMode) {
+        toggleItemForDeletion(layer);
+      }
+    });
+    
+    document.getElementById('save-draw-btn').style.display = 'inline-flex';
+  });
+}
+
+let appMode = 'viewer';
+let selectedLine = null;
+let editingRamal = null;
+let isDeleteMode = false;
+let itemsToDelete = [];
+
+/* ============================================================
+   APP LOGIC
+   ============================================================ */
+function openApp(mode) {
+  appMode = mode;
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('app-interface').style.display = 'flex';
+  document.getElementById('app-interface').setAttribute('aria-hidden', 'false');
+  document.getElementById('app-title').textContent = t(mode === 'editor' ? 'home.editor' : 'home.viewer');
+  document.getElementById('fabCreate').style.display = mode === 'editor' ? 'flex' : 'none';
+  
+  setTimeout(() => {
+    initMap();
+    map.invalidateSize();
+  }, 80);
+  
+  renderCategories();
+  
+  if (mode === 'editor') {
+    document.getElementById('delete-multi-btn').style.display = 'inline-flex';
+  } else {
+    if (drawControl._map) drawControl.remove();
+    document.getElementById('delete-multi-btn').style.display = 'none';
+  }
+}
+
+function goHome() {
+  if (document.getElementById('save-draw-btn').style.display !== 'none') {
+    if (!confirm('Tienes cambios sin guardar. ¿Ir a inicio?')) return;
+  }
+  
+  document.getElementById('app-interface').style.display = 'none';
+  document.getElementById('home-screen').style.display = 'flex';
+  drawnItems.clearLayers();
+  selectedLine = null;
+  editingRamal = null;
+  stopBusAnimation();
+  
+  // Resetear modo de borrado
+  if(isDeleteMode) {
+    isDeleteMode = false;
+    itemsToDelete = [];
+    const btn = document.getElementById('delete-multi-btn');
+    btn.classList.remove('active');
+    btn.innerHTML = `<i class="fas fa-trash-alt"></i> Borrar (<span id="delete-count">0</span>)`;
+  }
+  document.getElementById('delete-multi-btn').style.display = 'none';
+  
+  if(drawControl._map) drawControl.remove();
+}
+
+function renderCategories() {
+  const container = document.getElementById('categories-container');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  // Actualizar la clave de región
+  updateCurrentRegionKey();
+  
+  // Obtener DB filtrada por región
+  const filteredDB = getFilteredDB();
+  
+  availableCategories.forEach(cat => {
+    const lines = filteredDB[cat];
+    if (!lines || Object.keys(lines).length === 0) return;
+    
+    const catGroup = document.createElement('div');
+    catGroup.className = 'cat-group';
+    
+    const catHeader = document.createElement('div');
+    catHeader.className = 'cat-header';
+    catHeader.innerHTML = `
+      <span>${t('cat.' + catKeyMap(cat))}</span>
+      <span>${Object.keys(lines).length}</span>
+    `;
+    catHeader.onclick = () => {
+      catBody.classList.toggle('show');
+    };
+    
+    const catBody = document.createElement('div');
+    catBody.className = 'cat-body';
+    
+    Object.keys(lines).forEach(lineName => {
+      const lineData = lines[lineName];
+      const lineTransportType = lineData?._info?.transportType || 'bus';
+      
+      // Filtrar por tipo de transporte si hay uno seleccionado
+      if (selectedTransportType && lineTransportType !== selectedTransportType) {
+        return; // Saltar esta línea si no coincide con el filtro
+      }
+      
+      const lineRow = document.createElement('div');
+      lineRow.className = 'line-row';
+      lineRow.dataset.search = lineName.toLowerCase();
+      lineRow.dataset.transportType = lineTransportType;
+      
+
+      const lineBtn = document.createElement('div');
+      lineBtn.className = 'line-btn';
+      
+      // Verificar si es línea oficial
+      const isOfficial = lineData._info && lineData._info.isReal === true;
+      if (isOfficial) {
+        lineBtn.classList.add('official');
+      }
+      
+      const officialBadge = isOfficial ? '<span class="official-badge">Oficial</span>' : '';
+      
+      lineBtn.innerHTML = `
+        <span>${lineName}${officialBadge}</span>
+        <div class="mini-actions">
+          <i class="fas fa-edit" onclick="event.stopPropagation(); openRenameLine('${cat}', '${lineName}')"></i>
+          <i class="fas fa-trash" onclick="event.stopPropagation(); deleteLine('${cat}', '${lineName}')"></i>
+        </div>
+      `;
+
+      lineBtn.onclick = () => selectLine(cat, lineName);
+      
+      const ramalContainer = document.createElement('div');
+      ramalContainer.className = 'ramal-container';
+      ramalContainer.id = `ramals-${cat}-${lineName}`.replace(/\s/g, '');
+      
+      lineRow.appendChild(lineBtn);
+      lineRow.appendChild(ramalContainer);
+      catBody.appendChild(lineRow);
+    });
+    
+    catGroup.appendChild(catHeader);
+    catGroup.appendChild(catBody);
+    container.appendChild(catGroup);
+  });
+}
+
+function catKeyMap(cat) {
+  const map = {
+    "Urbano": "urban",
+    "InterUrbano": "interurban",
+    "Media Distancia": "medium",
+    "Larga Distancia": "long"
+  };
+  return map[cat] || "urban";
+}
+
+function selectLine(cat, name) {
+  selectedLine = { category: cat, name: name };
+  document.getElementById('selection-status').innerHTML = `<strong>${name}</strong>`;
+  
+  const ramalContainer = document.getElementById(`ramals-${cat}-${name}`.replace(/\s/g, ''));
+  if (ramalContainer) {
+    ramalContainer.style.display = ramalContainer.style.display === 'block' ? 'none' : 'block';
+    if (ramalContainer.style.display === 'block' && ramalContainer.children.length === 0) {
+      renderRamales(cat, name, ramalContainer);
+    }
+  }
+}
+
+function renderRamales(cat, line, container) {
+  container.innerHTML = '';
+  const filteredDB = getFilteredDB();
+  const ramales = filteredDB[cat][line];
+  if (!ramales) return;
+  
+  Object.keys(ramales).forEach(ramalName => {
+    if (ramalName === '_info') return;
+    
+    const ramalItem = document.createElement('div');
+    ramalItem.className = 'ramal-item';
+    ramalItem.innerHTML = `
+      <span>${ramalName}</span>
+      <div class="mini-actions">
+        <i class="fas fa-copy" title="Copiar Ramal" onclick="event.stopPropagation(); openCopyModal('${ramalName}', '${line}', '${cat}')"></i>
+        <i class="fas fa-edit" onclick="event.stopPropagation(); openRenameRamal('${cat}', '${line}', '${ramalName}')"></i>
+        <i class="fas fa-trash" onclick="event.stopPropagation(); deleteRamal('${cat}', '${line}', '${ramalName}')"></i>
+      </div>
+    `;
+    ramalItem.onclick = () => selectRamal(cat, line, ramalName);
+    container.appendChild(ramalItem);
+  });
+  
+  if (appMode === 'editor') {
+    const addBtn = document.createElement('div');
+    addBtn.className = 'ramal-item';
+    addBtn.style.borderLeft = '3px solid var(--teal)';
+    addBtn.innerHTML = '<i class="fas fa-plus"></i> <span>Añadir ramal</span>';
+    addBtn.onclick = () => {
+      document.getElementById('modalCreateRamal').style.display = 'flex';
+    };
+    container.appendChild(addBtn);
+  }
+}
+
+function selectRamal(cat, line, ramal) {
+  editingRamal = ramal;
+  selectedLine = { category: cat, name: line };
+  
+  document.querySelectorAll('.ramal-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  
+  drawnItems.clearLayers();
+  stopBusAnimation();
+  
+  const filteredDB = getFilteredDB();
+  const geoJSON = filteredDB[cat][line][ramal];
+  if (geoJSON && geoJSON.features) {
+    L.geoJSON(geoJSON).eachLayer(layer => {
+      drawnItems.addLayer(layer);
+      
+      // Agregar evento de clic para modo borrado múltiple
+      layer.on('click', function() {
+        if(isDeleteMode) {
+          toggleItemForDeletion(layer);
+        }
+      });
+    });
+    map.fitBounds(drawnItems.getBounds());
+    
+    if (appMode === 'viewer') {
+      startBusAnimation(geoJSON);
+    }
+  }
+  
+  // Agregar controles de dibujo solo en modo editor
+  if (appMode === 'editor') {
+    if (!drawControl._map) map.addControl(drawControl);
+  } else {
+    if (drawControl._map) drawControl.remove();
+  }
+  
+  document.getElementById('selection-status').innerHTML = `<strong>${line}</strong> <span class="status-company-sub">${ramal}</span>`;
+}
+
+/* ============================================================
+   BUS ANIMATION (Gemini)
+   ============================================================ */
+let animFrame;
+function startBusAnimation(geoJSON) {
+  if (!geoJSON) return;
+  let coords = [];
+  geoJSON.features.forEach(f => {
+    if (f.geometry.type === 'LineString') {
+      coords = coords.concat(f.geometry.coordinates.map(c => [c[1], c[0]]));
+    }
+  });
+  if (coords.length < 2) return;
+  
+  const busIcon = L.divIcon({
+    className: 'bus-icon',
+    html: '<div style="background:#00f0c0; width:20px; height:20px; border-radius:50%; box-shadow:0 0 10px #00f0c0; border:2px solid #fff;"></div>',
+    iconSize: [20, 20]
+  });
+  
+  busMarker = L.marker(coords[0], { icon: busIcon }).addTo(map);
+  
+  let currentIndex = 0;
+  let progress = 0;
+  const speedMetersPerFrame = 15;
+  
+  function animate() {
+    if (!busMarker) return;
+    const p1 = L.latLng(coords[currentIndex]);
+    const p2 = L.latLng(coords[currentIndex + 1]);
+    const dist = map.distance(p1, p2);
+    const step = (dist > 0) ? speedMetersPerFrame / dist : 1;
+    progress += step;
+    
+    if (progress >= 1) {
+      progress = 0;
+      currentIndex++;
+      if (currentIndex >= coords.length - 1) currentIndex = 0;
+    } else {
+      const lat = p1.lat + (p2.lat - p1.lat) * progress;
+      const lng = p1.lng + (p2.lng - p1.lng) * progress;
+      busMarker.setLatLng([lat, lng]);
+    }
+    animFrame = requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+function stopBusAnimation() {
+  if (busMarker) busMarker.remove();
+  cancelAnimationFrame(animFrame);
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+function saveCurrentRamalDraw() {
+  if (!selectedLine || !editingRamal) return;
+  const geo = drawnItems.toGeoJSON();
+  const filteredDB = getFilteredDB();
+  filteredDB[selectedLine.category][selectedLine.name][editingRamal] = geo;
+  saveFilteredDB(filteredDB);
+  document.getElementById('save-draw-btn').style.display = 'none';
+  showToast('Recorrido guardado correctamente');
+}
+
+function showCreateOptions() {
+  document.getElementById('modalCreateLine').style.display = 'flex';
+}
+
+function confirmCreateLine() {
+  const name = document.getElementById('newLineName').value.trim();
+  const cat = document.getElementById('newLineCategory').value;
+  const comp = document.getElementById('newLineCompany').value.trim();
+  const isOfficial = document.getElementById('newLineOfficial').checked;
+  
+  if (!name) return showToast('Falta el nombre', 'error');
+  
+  // Obtener DB filtrada
+  const filteredDB = getFilteredDB();
+  
+  if (!filteredDB[cat][name]) {
+    filteredDB[cat][name] = {
+      _info: {
+        company: comp,
+        isReal: isOfficial,
+        transportType: selectedTransportType || 'bus'
+      }
+    };
+    saveFilteredDB(filteredDB);
+    renderCategories();
+    closeModals();
+    showToast('Línea creada');
+  } else {
+    showToast('La línea ya existe', 'error');
+  }
+}
+
+function confirmCreateRamal() {
+  const rName = document.getElementById('newRamalName').value.trim();
+  if (!rName || !selectedLine) return;
+  
+  const filteredDB = getFilteredDB();
+  filteredDB[selectedLine.category][selectedLine.name][rName] = null;
+  saveFilteredDB(filteredDB);
+  closeModals();
+  showToast('Ramal añadido');
+  
+  const ramalDiv = document.getElementById(`ramals-${selectedLine.category}-${selectedLine.name}`.replace(/\s/g, ''));
+  if (ramalDiv) renderRamales(selectedLine.category, selectedLine.name, ramalDiv);
+}
+
+function deleteLine(cat, name) {
+  if (confirm('¿Eliminar ' + name + '?')) {
+    const filteredDB = getFilteredDB();
+    delete filteredDB[cat][name];
+    saveFilteredDB(filteredDB);
+    renderCategories();
+    showToast('Línea eliminada');
+  }
+}
+
+function deleteRamal(cat, line, ramal) {
+  if (confirm('¿Eliminar ramal ' + ramal + '?')) {
+    const filteredDB = getFilteredDB();
+    delete filteredDB[cat][line][ramal];
+    saveFilteredDB(filteredDB);
+    const ramalDiv = document.getElementById(`ramals-${cat}-${line}`.replace(/\s/g, ''));
+    if (ramalDiv) renderRamales(cat, line, ramalDiv);
+    showToast('Ramal eliminado');
+  }
+}
+
+function openRenameLine(cat, name) {
+  document.getElementById('renameType').value = 'line';
+  document.getElementById('renameOldName').value = name;
+  document.getElementById('renameCat').value = cat;
+  document.getElementById('renameNewName').value = name;
+  
+  const lineFields = document.getElementById('renameLineFields');
+  const companyInput = document.getElementById('renameNewCompany');
+  const categorySelect = document.getElementById('renameNewCategory');
+  const officialCheck = document.getElementById('renameNewOfficial');
+  
+  lineFields.style.display = 'block';
+  // Cargar datos actuales
+  const filteredDB = getFilteredDB();
+  const currentInfo = filteredDB[cat][name]._info || {};
+  companyInput.value = currentInfo.company || '';
+  officialCheck.checked = currentInfo.isReal === true;
+  categorySelect.value = cat;
+
+  document.getElementById('modalRename').style.display = 'flex';
+}
+
+function openRenameRamal(cat, line, ramal) {
+  document.getElementById('renameType').value = 'ramal';
+  document.getElementById('renameOldName').value = ramal;
+  document.getElementById('renameCat').value = cat;
+  document.getElementById('renameParentLine').value = line;
+  document.getElementById('renameNewName').value = ramal;
+  
+  const lineFields = document.getElementById('renameLineFields');
+  lineFields.style.display = 'none';
+
+  document.getElementById('modalRename').style.display = 'flex';
+}
+
+function confirmRename() {
+  const type = document.getElementById('renameType').value;
+  const oldName = document.getElementById('renameOldName').value;
+  const newName = document.getElementById('renameNewName').value.trim();
+  const oldCat = document.getElementById('renameCat').value;
+  
+  if(!newName) {
+    showToast('Nombre inválido', 'error');
+    return;
+  }
+
+  const filteredDB = getFilteredDB();
+
+  if(type === 'line') {
+    const newCompany = document.getElementById('renameNewCompany').value.trim();
+    const newCat = document.getElementById('renameNewCategory').value;
+    const isReal = document.getElementById('renameNewOfficial').checked;
+    
+    // Verificar si la línea existe en la categoría destino (si cambia nombre o cat)
+    if((newName !== oldName || newCat !== oldCat) && filteredDB[newCat][newName]) {
+      showToast('Ya existe una línea con ese nombre en la categoría seleccionada', 'error');
+      return;
+    }
+    
+    // Obtener datos y actualizar info
+    const lineData = filteredDB[oldCat][oldName];
+    if(!lineData._info) lineData._info = {};
+    lineData._info.company = newCompany;
+    lineData._info.isReal = isReal;
+
+    // Mover datos si cambió categoría o nombre
+    if (newCat !== oldCat || newName !== oldName) {
+      filteredDB[newCat][newName] = lineData;
+      // Eliminar antigua
+      delete filteredDB[oldCat][oldName];
+      
+      // Si la línea seleccionada era esta, actualizar referencia
+      if(selectedLine && selectedLine.name === oldName) {
+        selectedLine.name = newName;
+        selectedLine.category = newCat;
+      }
+    }
+    
+  } else {
+    // Renombrar ramal
+    const pLine = document.getElementById('renameParentLine').value;
+    if(newName !== oldName && filteredDB[oldCat][pLine][newName]) {
+      showToast('Ya existe ese ramal', 'error');
+      return;
+    }
+    
+    if(newName !== oldName) {
+      filteredDB[oldCat][pLine][newName] = filteredDB[oldCat][pLine][oldName];
+      delete filteredDB[oldCat][pLine][oldName];
+      if(editingRamal === oldName) editingRamal = newName;
+    }
+  }
+  saveFilteredDB(filteredDB);
+  closeModals();
+  renderCategories();
+  showToast('Actualizado correctamente');
+}
+
+function openCopyModal(ramal, line, cat) {
+  document.getElementById('copySourceRamal').innerText = ramal;
+  document.getElementById('copySourceLine').value = line;
+  document.getElementById('copySourceCat').value = cat;
+  document.getElementById('copyNewName').value = '';
+  const select = document.getElementById('copyTargetLineSelect');
+  select.innerHTML = '';
+  const filteredDB = getFilteredDB();
+  availableCategories.forEach(c => {
+    const lines = filteredDB[c];
+    Object.keys(lines).forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({cat: c, line: l});
+      opt.text = `[${c}] ${l}`;
+      if(c === cat && l === line) opt.selected = true;
+      select.add(opt);
+    });
+  });
+  document.getElementById('modalCopyRamal').style.display = 'flex';
+}
+
+function confirmCopyRamal() {
+  const sourceRamal = document.getElementById('copySourceRamal').innerText;
+  const sourceLine = document.getElementById('copySourceLine').value;
+  const sourceCat = document.getElementById('copySourceCat').value;
+  const targetJson = JSON.parse(document.getElementById('copyTargetLineSelect').value);
+  let newName = document.getElementById('copyNewName').value.trim();
+  if(!newName) newName = sourceRamal + " (Copia)";
+  const targetCat = targetJson.cat;
+  const targetLine = targetJson.line;
+
+  const filteredDB = getFilteredDB();
+  if(filteredDB[targetCat][targetLine][newName]) {
+    showToast('Ya existe un ramal con ese nombre', 'error');
+    return;
+  }
+  const dataToCopy = filteredDB[sourceCat][sourceLine][sourceRamal];
+  filteredDB[targetCat][targetLine][newName] = dataToCopy ? JSON.parse(JSON.stringify(dataToCopy)) : null;
+  saveFilteredDB(filteredDB);
+  closeModals();
+  showToast('Ramal copiado exitosamente');
+  renderCategories(); 
+}
+
+function toggleMultiDelete() {
+  isDeleteMode = !isDeleteMode;
+  const btn = document.getElementById('delete-multi-btn');
+  if (isDeleteMode) {
+    btn.classList.add('active');
+    btn.innerHTML = `<i class="fas fa-check"></i> Confirmar (<span id="delete-count">0</span>)`;
+    itemsToDelete = [];
+    map.closePopup();
+    if(drawControl._map) drawControl.remove();
+  } else {
+    if (itemsToDelete.length > 0) {
+      if(confirm(`¿Borrar ${itemsToDelete.length} elementos seleccionados?`)) {
+        itemsToDelete.forEach(layer => drawnItems.removeLayer(layer));
+        document.getElementById('save-draw-btn').style.display = 'inline-flex';
+        showToast(`${itemsToDelete.length} elementos borrados`);
+      } else {
+        itemsToDelete.forEach(layer => {
+          if(layer.setOpacity) layer.setOpacity(1);
+          else if(layer.setStyle) layer.setStyle({opacity: 1});
+        });
+      }
+    }
+    btn.classList.remove('active');
+    updateDeleteCount();
+    btn.innerHTML = `<i class="fas fa-trash-alt"></i> Borrar (<span id="delete-count">0</span>)`;
+    itemsToDelete = [];
+    if(appMode === 'editor' && selectedLine) map.addControl(drawControl);
+  }
+}
+
+function toggleItemForDeletion(layer) {
+  const index = itemsToDelete.indexOf(layer);
+  if (index === -1) {
+    itemsToDelete.push(layer);
+    if(layer.setOpacity) layer.setOpacity(0.4); 
+    else if(layer.setStyle) layer.setStyle({opacity: 0.4});
+  } else {
+    itemsToDelete.splice(index, 1);
+    if(layer.setOpacity) layer.setOpacity(1);
+    else if(layer.setStyle) layer.setStyle({opacity: 1});
+  }
+  updateDeleteCount();
+}
+
+function updateDeleteCount() {
+  const span = document.getElementById('delete-count');
+  if(span) span.innerText = itemsToDelete.length;
+}
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+function closeModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+}
+
+function filterLines() {
+  const term = document.getElementById('lineSearchInput').value.toLowerCase();
+  document.querySelectorAll('.line-row').forEach(row => {
+    const text = row.dataset.search;
+    row.style.display = text.includes(term) ? 'flex' : 'none';
+  });
+  
+  if (term.length > 0) {
+    document.querySelectorAll('.cat-body').forEach(b => b.classList.add('show'));
+  } else {
+    document.querySelectorAll('.cat-body').forEach(b => b.classList.remove('show'));
+  }
+}
+
+// Variables globales para seguimiento - NUEVO v6.0
+let userLocationMarker = null;
+let userLocationAccuracyCircle = null;
+let watchPositionId = null;
+let isTracking = false;
+let trackingPath = [];
+let trackingPolyline = null;
+let trackingStartTime = null;
+
+function locateUser() {
+  if (!navigator.geolocation) {
+    showToast('Tu navegador no soporta geolocalización', 'error');
+    return;
+  }
+  
+  const locateFab = document.getElementById('locate-fab');
+  locateFab?.classList.add('locate-active');
+  showToast('Localizando...');
+  
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const accuracy = position.coords.accuracy;
+      
+      // Centrar mapa en la ubicación
+      map.setView([lat, lng], 16);
+      
+      // Crear/actualizar marcador persistente del usuario
+      updateUserLocationMarker(lat, lng, accuracy);
+      
+      locateFab?.classList.remove('locate-active');
+      showToast('Ubicación encontrada', 'success');
+      
+      // Mostrar controles de seguimiento si es bus o trolley
+      updateTrackingControlsVisibility();
+    },
+    (error) => {
+      console.error('Error de geolocalización:', error);
+      showToast('No se pudo obtener tu ubicación', 'error');
+      locateFab?.classList.remove('locate-active');
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  );
+}
+
+function updateUserLocationMarker(lat, lng, accuracy) {
+  // Eliminar marcador anterior si existe
+  if (userLocationMarker) {
+    map.removeLayer(userLocationMarker);
+  }
+  if (userLocationAccuracyCircle) {
+    map.removeLayer(userLocationAccuracyCircle);
+  }
+  
+  // Crear nuevo marcador personalizado con pulso
+  const userIcon = L.divIcon({
+    className: 'user-location-marker',
+    html: '<div class="user-location-pulse"></div>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+  
+  userLocationMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map);
+  userLocationMarker.bindPopup('<strong>📍 Tu ubicación</strong>').openPopup();
+  
+  // Círculo de precisión
+  userLocationAccuracyCircle = L.circle([lat, lng], {
+    radius: accuracy,
+    color: '#00f0c0',
+    fillColor: '#00f0c0',
+    fillOpacity: 0.1,
+    weight: 2
+  }).addTo(map);
+}
+
+function updateTrackingControlsVisibility() {
+  const trackingControls = document.getElementById('tracking-controls');
+  
+  // Solo mostrar si el transporte es bus o trolley
+  if (selectedTransportType === 'bus' || selectedTransportType === 'trolley') {
+    trackingControls?.classList.add('visible');
+  } else {
+    trackingControls?.classList.remove('visible');
+    // Detener seguimiento si está activo
+    if (isTracking) {
+      stopTracking();
+    }
+  }
+}
+
+// NUEVA FUNCIÓN: Iniciar seguimiento en tiempo real
+function startTracking() {
+  if (isTracking) return;
+  
+  if (!navigator.geolocation) {
+    showToast('Tu navegador no soporta geolocalización', 'error');
+    return;
+  }
+  
+  // Verificar que sea bus o trolley
+  if (selectedTransportType !== 'bus' && selectedTransportType !== 'trolley') {
+    showToast('El seguimiento solo está disponible para Bus y Trolley', 'error');
+    return;
+  }
+  
+  isTracking = true;
+  trackingPath = [];
+  trackingStartTime = new Date();
+  
+  // Actualizar UI
+  document.getElementById('start-tracking-btn').style.display = 'none';
+  document.getElementById('stop-tracking-btn').style.display = 'flex';
+  document.getElementById('save-route-btn').style.display = 'flex';
+  document.getElementById('tracking-status').textContent = 'Grabando...';
+  document.getElementById('tracking-status').classList.add('recording');
+  
+  showToast('Seguimiento iniciado', 'success');
+  
+  // Iniciar watchPosition para seguimiento continuo
+  watchPositionId = navigator.geolocation.watchPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const accuracy = position.coords.accuracy;
+      
+      // Actualizar marcador de ubicación
+      updateUserLocationMarker(lat, lng, accuracy);
+      
+      // Agregar punto al recorrido
+      trackingPath.push([lat, lng]);
+      
+      // Actualizar polilínea del recorrido
+      updateTrackingPolyline();
+      
+      // Actualizar estado
+      const duration = Math.floor((new Date() - trackingStartTime) / 1000);
+      document.getElementById('tracking-status').textContent = 
+        `Grabando... ${trackingPath.length} pts | ${duration}s`;
+    },
+    (error) => {
+      console.error('Error en seguimiento:', error);
+      showToast('Error al rastrear ubicación', 'error');
+      stopTracking();
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0
+    }
+  );
+}
+
+function updateTrackingPolyline() {
+  if (trackingPath.length < 2) return;
+  
+  // Eliminar polilínea anterior
+  if (trackingPolyline) {
+    map.removeLayer(trackingPolyline);
+  }
+  
+  // Crear nueva polilínea con estilo especial
+  trackingPolyline = L.polyline(trackingPath, {
+    color: '#ff3b5c',
+    weight: 4,
+    opacity: 0.8,
+    dashArray: '10, 5',
+    lineJoin: 'round',
+    lineCap: 'round'
+  }).addTo(map);
+  
+  // Centrar mapa en el recorrido
+  const bounds = trackingPolyline.getBounds();
+  map.fitBounds(bounds, { padding: [50, 50] });
+}
+
+// NUEVA FUNCIÓN: Detener seguimiento
+function stopTracking() {
+  if (!isTracking) return;
+  
+  isTracking = false;
+  
+  // Detener watchPosition
+  if (watchPositionId !== null) {
+    navigator.geolocation.clearWatch(watchPositionId);
+    watchPositionId = null;
+  }
+  
+  // Actualizar UI
+  document.getElementById('start-tracking-btn').style.display = 'flex';
+  document.getElementById('stop-tracking-btn').style.display = 'none';
+  
+  const duration = trackingStartTime ? 
+    Math.floor((new Date() - trackingStartTime) / 1000) : 0;
+  
+  document.getElementById('tracking-status').textContent = 
+    `Detenido (${trackingPath.length} puntos, ${duration}s)`;
+  document.getElementById('tracking-status').classList.remove('recording');
+  
+  showToast('Seguimiento detenido', 'info');
+}
+
+// NUEVA FUNCIÓN: Guardar recorrido rastreado
+function saveTrackedRoute() {
+  if (trackingPath.length < 2) {
+    showToast('Necesitas al menos 2 puntos para guardar el recorrido', 'error');
+    return;
+  }
+  
+  const lineName = prompt('Nombre de la línea rastreada:', 
+    `Recorrido ${new Date().toLocaleTimeString()}`);
+  
+  if (!lineName || lineName.trim() === '') {
+    showToast('Cancelado', 'info');
+    return;
+  }
+  
+  const company = prompt('Nombre de la empresa (opcional):', '') || 'GPS Tracking';
+  
+  // Crear estructura de la línea
+  updateCurrentRegionKey();
+  const cat = 'Urbano'; // Por defecto urbano para recorridos rastreados
+  const provDB = getProvDB();
+  
+  if (!provDB[cat]) provDB[cat] = {};
+  if (!provDB[cat][lineName]) {
+    provDB[cat][lineName] = {
+      company: company,
+      official: false,
+      ramales: {}
+    };
+  }
+  
+  // Crear ramal con el recorrido rastreado
+  const ramalName = 'GPS Track ' + new Date().toLocaleTimeString('es', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  
+  provDB[cat][lineName].ramales[ramalName] = {
+    route: trackingPath,
+    stops: [] // No hay paradas definidas en el seguimiento GPS
+  };
+  
+  saveDB();
+  refreshCategoriesPanel();
+  
+  showToast(`✅ Recorrido "${lineName}" guardado con ${trackingPath.length} puntos`, 'success');
+  
+  // Limpiar seguimiento
+  trackingPath = [];
+  if (trackingPolyline) {
+    map.removeLayer(trackingPolyline);
+    trackingPolyline = null;
+  }
+  
+  // Resetear UI
+  document.getElementById('save-route-btn').style.display = 'none';
+  document.getElementById('tracking-status').textContent = 'Recorrido guardado';
+}
+
+function toggleMultiDelete() {
+  // Placeholder
+  showToast('Función de eliminación múltiple próximamente', 'error');
+}
+
+/* ============================================================
+   EXPORT / IMPORT (mejorado con ChatGPT)
+   ============================================================ */
+function openExportModal() {
+  document.getElementById('modalExport').style.display = 'flex';
+  const listContainer = document.getElementById('exportChecklist');
+  listContainer.innerHTML = '';
+  let hasLines = false;
+  
+  updateCurrentRegionKey();
+  const provData = getFilteredDB();
+  
+  availableCategories.forEach(cat => {
+    const lines = Object.keys(provData[cat] || {});
+    if (lines.length > 0) {
+      const catHeader = document.createElement('div');
+      catHeader.style.cssText = "font-weight:600;margin:10px 0 5px;color:var(--teal);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;";
+      catHeader.innerText = t('cat.' + catKeyMap(cat));
+      listContainer.appendChild(catHeader);
+      
+      lines.forEach(lineName => {
+        hasLines = true;
+        const item = document.createElement('div');
+        item.style.cssText = "padding:8px 0;border-bottom:1px solid var(--border);";
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = JSON.stringify({ cat, lineName });
+        checkbox.checked = true;
+        const label = document.createElement('label');
+        label.style.cssText = "margin-left:8px;cursor:pointer;";
+        label.innerText = lineName;
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        listContainer.appendChild(item);
+      });
+    }
+  });
+  
+  if (!hasLines) {
+    listContainer.innerHTML = '<div style="text-align:center;padding:18px;color:var(--text-muted);font-size:0.8rem;">No hay líneas para exportar</div>';
+  }
+}
+
+function downloadJSON() {
+  const checkboxes = document.querySelectorAll('#exportChecklist input[type="checkbox"]:checked');
+  if (checkboxes.length === 0) return showToast('Selecciona al menos una línea', 'error');
+  
+  const exportPackage = {
+    type: "BusCreatorPackage",
+    version: "3.0",
+    province: currentProvince,
+    timestamp: new Date().toISOString(),
+    lines: []
+  };
+  
+  updateCurrentRegionKey();
+  const filteredDB = getFilteredDB();
+  
+  checkboxes.forEach(cb => {
+    const { cat, lineName } = JSON.parse(cb.value);
+    exportPackage.lines.push({
+      category: cat,
+      name: lineName,
+      data: filteredDB[cat][lineName]
+    });
+  });
+  
+  const blob = new Blob([JSON.stringify(exportPackage, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+  a.href = url;
+  a.download = checkboxes.length === 1
+    ? `Line_${JSON.parse(checkboxes[0].value).lineName.replace(/\s/g, '_')}.json`
+    : `BusCreator_Pack_${checkboxes.length}_${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  closeModals();
+  showToast('Exportado correctamente');
+}
+
+function openImportModal() {
+  document.getElementById('importInput').value = '';
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('modalImport').style.display = 'flex';
+}
+
+function readJSONFile(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('importInput').value = e.target.result;
+    };
+    reader.readAsText(input.files[0]);
+  }
+}
+
+function confirmImport() {
+  try {
+    const raw = document.getElementById('importInput').value;
+    if (!raw) return showToast('Contenido vacío', 'error');
+    const data = JSON.parse(raw);
+    let importCount = 0;
+    
+    updateCurrentRegionKey();
+    const filteredDB = getFilteredDB();
+    
+    if ((data.type === "BusCreatorPackage" || data.type === "RedBusPackage") && Array.isArray(data.lines)) {
+      if (!confirm(`Se detectaron ${data.lines.length} líneas. ¿Importar?`)) return;
+      data.lines.forEach(item => {
+        const safeCat = availableCategories.includes(item.category) ? item.category : "Media Distancia";
+        filteredDB[safeCat][item.name] = item.data;
+        importCount++;
+      });
+    } else if (data.type === "RedBusLine" || data.ramales) {
+      const safeCat = availableCategories.includes(data.category) ? data.category : "Media Distancia";
+      const targetName = data.name || "Imported Line";
+      if (filteredDB[safeCat][targetName]) {
+        if (!confirm(`La línea ${targetName} ya existe. ¿Sobrescribir?`)) return;
+      }
+      filteredDB[safeCat][targetName] = data.ramales || data;
+      importCount = 1;
+    } else {
+      throw new Error("Formato desconocido");
+    }
+    
+    saveFilteredDB(filteredDB);
+    closeModals();
+    showToast(`${importCount} línea(s) importada(s)`);
+    renderCategories();
+    updateHomeStats();
+  } catch (e) {
+    showToast('Error al importar: ' + e.message, 'error');
+    console.error(e);
+  }
+}
+
+function saveDB() {
+  localStorage.setItem('redbus_sim_db', JSON.stringify(db));
+}
+
+/* ============================================================
+   DEMO DATA & CLEAR (ChatGPT)
+   ============================================================ */
+function seedDemoData() {
+  const filteredDB = getFilteredDB();
+  if (Object.keys(filteredDB['Urbano']).length > 0 && !confirm('Ya hay datos. ¿Reemplazar con demo?')) return;
+  
+  const demoData = {
+    "Urbano": {
+      "102": {
+        _info: { company: "Demo Transport", isReal: false, transportType: selectedTransportType || 'bus' },
+        "Ramal A": null
+      }
+    },
+    "InterUrbano": {},
+    "Media Distancia": {},
+    "Larga Distancia": {}
+  };
+  
+  saveFilteredDB(demoData);
+  updateHomeStats();
+  renderCategories();
+  showToast('Demo cargada');
+}
+
+function clearDataConfirm() {
+  if (confirm('¿Borrar toda la base de datos local?')) {
+    const emptyData = {
+      "Urbano": {},
+      "InterUrbano": {},
+      "Media Distancia": {},
+      "Larga Distancia": {}
+    };
+    saveFilteredDB(emptyData);
+    updateHomeStats();
+    renderCategories();
+    showToast('Datos borrados');
+  }
+}
+
+/* ============================================================
+   RESIZABLE PANEL (Gemini)
+   ============================================================ */
+const panel = document.getElementById('resizable-panel');
+const handle = document.getElementById('resize-handle');
+let startY, startH;
+
+handle.addEventListener('touchstart', e => {
+  startY = e.touches[0].clientY;
+  startH = panel.clientHeight;
+  document.addEventListener('touchmove', onTouchMove);
+  document.addEventListener('touchend', onTouchEnd);
+});
+
+handle.addEventListener('mousedown', e => {
+  startY = e.clientY;
+  startH = panel.clientHeight;
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+});
+
+function onTouchMove(e) {
+  panel.style.height = (startH + (startY - e.touches[0].clientY)) + 'px';
+}
+
+function onTouchEnd() {
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('touchend', onTouchEnd);
+  if (map) map.invalidateSize();
+}
+
+function onMouseMove(e) {
+  panel.style.height = (startH + (startY - e.clientY)) + 'px';
+}
+
+function onMouseUp() {
+  document.removeEventListener('mousemove', onMouseMove);
+  document.removeEventListener('mouseup', onMouseUp);
+  if (map) map.invalidateSize();
+}
+
+/* ============================================================
+   KEYBOARD SHORTCUTS (ChatGPT)
+   ============================================================ */
+document.addEventListener('keydown', (e) => {
+  if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+  
+  if (e.key.toLowerCase() === 'h') goHome();
+  if (e.key.toLowerCase() === 'e') openApp('editor');
+  if (e.key.toLowerCase() === 'v') openApp('viewer');
+  
+  if (document.getElementById('home-screen').style.display !== 'none') {
+    if (['1', '2', '3', '4', '5'].includes(e.key)) {
+      const langs = ['es', 'en', 'pt', 'ru', 'de'];
+      const idx = parseInt(e.key, 10) - 1;
+      if (langs[idx]) setLang(langs[idx]);
+    }
+  }
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  applyI18n();
+  updateHomeStats();
+  initRegionalConfig();
+  initTransportButtons();
+  
+  const firstMenu = document.querySelector('.menu-card');
+  if (firstMenu) firstMenu.setAttribute('tabindex', '0');
+});
+
+
+
+/* ============================================================
+   DATOS REGIONALES - NUEVA FUNCIONALIDAD (CORREGIDO)
+   ============================================================ */
+const REGIONAL_DATA = {
+  "España": {
+    regions: {
+      "Madrid": { lat: 40.4168, lng: -3.7038, zoom: 11 },
+      "Barcelona": { lat: 41.3851, lng: 2.1734, zoom: 11 },
+      "Valencia": { lat: 39.4699, lng: -0.3763, zoom: 11 },
+      "Sevilla": { lat: 37.3891, lng: -5.9845, zoom: 11 },
+      "Bilbao": { lat: 43.2627, lng: -2.9253, zoom: 12 }
+    },
+    transportTypes: ["bus", "metro", "tren", "tranvia", "funicular", "bici"]
+  },
+  "Argentina": {
+    regions: {
+      "Buenos Aires": { lat: -34.6037, lng: -58.3816, zoom: 11 },
+      "Córdoba": { lat: -31.4201, lng: -64.1888, zoom: 11 },
+      "Rosario": { lat: -32.9468, lng: -60.6393, zoom: 11 },
+      "Mendoza": { lat: -32.8895, lng: -68.8458, zoom: 11 },
+      "Tucumán": { lat: -26.8241, lng: -65.2226, zoom: 12 }
+    },
+    transportTypes: ["bus", "metro", "tren", "trolley"]
+  },
+  "México": {
+    regions: {
+      "Ciudad de México": { lat: 19.4326, lng: -99.1332, zoom: 11 },
+      "Guadalajara": { lat: 20.6597, lng: -103.3496, zoom: 11 },
+      "Monterrey": { lat: 25.6866, lng: -100.3161, zoom: 11 },
+      "Puebla": { lat: 19.0414, lng: -98.2063, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro", "tren", "brt", "bici"]
+  },
+  "Chile": {
+    regions: {
+      "Santiago": { lat: -33.4489, lng: -70.6693, zoom: 11 },
+      "Valparaíso": { lat: -33.0472, lng: -71.6127, zoom: 12 },
+      "Concepción": { lat: -36.8201, lng: -73.0444, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro", "tren", "trolley", "funicular", "bici"]
+  },
+  "Colombia": {
+    regions: {
+      "Bogotá": { lat: 4.7110, lng: -74.0721, zoom: 11 },
+      "Medellín": { lat: 6.2442, lng: -75.5812, zoom: 11 },
+      "Cali": { lat: 3.4516, lng: -76.5320, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro", "tren", "teleferico", "brt", "bici"]
+  },
+  "Perú": {
+    regions: {
+      "Lima": { lat: -12.0464, lng: -77.0428, zoom: 11 },
+      "Arequipa": { lat: -16.4090, lng: -71.5375, zoom: 12 },
+      "Cusco": { lat: -13.5319, lng: -71.9675, zoom: 12 }
+    },
+    transportTypes: ["bus", "metro", "tren", "teleferico", "bici"]
+  },
+  "Brasil": {
+    regions: {
+      "São Paulo": { lat: -23.5505, lng: -46.6333, zoom: 10 },
+      "Rio de Janeiro": { lat: -22.9068, lng: -43.1729, zoom: 11 },
+      "Brasília": { lat: -15.8267, lng: -47.9218, zoom: 11 },
+      "Salvador": { lat: -12.9714, lng: -38.5014, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro", "tren", "ferry"]
+  },
+  "Portugal": {
+    regions: {
+      "Lisboa": { lat: 38.7223, lng: -9.1393, zoom: 12 },
+      "Porto": { lat: 41.1579, lng: -8.6291, zoom: 12 },
+      "Coimbra": { lat: 40.2033, lng: -8.4103, zoom: 13 }
+    },
+    transportTypes: ["bus", "metro", "tren", "tranvia", "ferry"]
+  },
+  "Alemania": {
+    regions: {
+      "Berlín": { lat: 52.5200, lng: 13.4050, zoom: 11 },
+      "Múnich": { lat: 48.1351, lng: 11.5820, zoom: 11 },
+      "Frankfurt": { lat: 50.1109, lng: 8.6821, zoom: 11 },
+      "Hamburgo": { lat: 53.5511, lng: 9.9937, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro", "tren", "tranvia"]
+  },
+  "Austria": {
+    regions: {
+      "Viena": { lat: 48.2082, lng: 16.3738, zoom: 11 },
+      "Graz": { lat: 47.0707, lng: 15.4395, zoom: 12 },
+      "Salzburgo": { lat: 47.8095, lng: 13.0550, zoom: 12 }
+    },
+    transportTypes: ["bus", "metro", "tren", "tranvia"]
+  },
+  "Suiza": {
+    regions: {
+      "Zúrich": { lat: 47.3769, lng: 8.5417, zoom: 12 },
+      "Ginebra": { lat: 46.2044, lng: 6.1432, zoom: 12 },
+      "Berna": { lat: 46.9480, lng: 7.4474, zoom: 12 }
+    },
+    transportTypes: ["bus", "tren", "tranvia", "ferry"]
+  },
+  "Reino Unido": {
+    regions: {
+      "Londres": { lat: 51.5074, lng: -0.1278, zoom: 11 },
+      "Manchester": { lat: 53.4808, lng: -2.2426, zoom: 11 },
+      "Birmingham": { lat: 52.4862, lng: -1.8904, zoom: 11 },
+      "Liverpool": { lat: 53.4084, lng: -2.9916, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro", "tren", "ferry"]
+  },
+  "Irlanda": {
+    regions: {
+      "Dublín": { lat: 53.3498, lng: -6.2603, zoom: 12 },
+      "Cork": { lat: 51.8985, lng: -8.4756, zoom: 12 }
+    },
+    transportTypes: ["bus", "tren", "tranvia"]
+  },
+  "Estados Unidos": {
+    regions: {
+      "Nueva York": { lat: 40.7128, lng: -74.0060, zoom: 11 },
+      "Los Ángeles": { lat: 34.0522, lng: -118.2437, zoom: 11 },
+      "Chicago": { lat: 41.8781, lng: -87.6298, zoom: 11 },
+      "San Francisco": { lat: 37.7749, lng: -122.4194, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro", "tren", "ferry", "trolley"]
+  },
+  "Canadá": {
+    regions: {
+      "Toronto": { lat: 43.6532, lng: -79.3832, zoom: 11 },
+      "Montreal": { lat: 45.5017, lng: -73.5673, zoom: 11 },
+      "Vancouver": { lat: 49.2827, lng: -123.1207, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro", "tren", "ferry"]
+  },
+  "Rusia": {
+    regions: {
+      "Moscú": { lat: 55.7558, lng: 37.6173, zoom: 10 },
+      "San Petersburgo": { lat: 59.9311, lng: 30.3609, zoom: 10 },
+      "Kazán": { lat: 55.7964, lng: 49.1089, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro", "tren", "trolley", "tranvia"]
+  },
+  "Uruguay": {
+    regions: {
+      "Montevideo": { lat: -34.9011, lng: -56.1645, zoom: 11 }
+    },
+    transportTypes: ["bus", "ferry"]
+  },
+  "Venezuela": {
+    regions: {
+      "Caracas": { lat: 10.4806, lng: -66.9036, zoom: 11 },
+      "Maracaibo": { lat: 10.6666, lng: -71.6123, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro"]
+  },
+  "Ecuador": {
+    regions: {
+      "Quito": { lat: -0.1807, lng: -78.4678, zoom: 11 },
+      "Guayaquil": { lat: -2.1894, lng: -79.8890, zoom: 11 }
+    },
+    transportTypes: ["bus", "metro", "trolley"]
+  },
+  "Bolivia": {
+    regions: {
+      "La Paz": { lat: -16.5000, lng: -68.1500, zoom: 11 },
+      "Santa Cruz": { lat: -17.8146, lng: -63.1560, zoom: 11 }
+    },
+    transportTypes: ["bus", "tren"]
+  },
+  "Paraguay": {
+    regions: {
+      "Asunción": { lat: -25.2637, lng: -57.5759, zoom: 11 }
+    },
+    transportTypes: ["bus"]
+  }
+};
+
+// Variables globales para configuración regional
+let selectedCountry = '';
+let selectedRegion = '';
+let selectedTransportType = 'bus';
+let regionalMapCenter = null; // Guardar coordenadas seleccionadas
+
+/* ============================================================
+   FUNCIONES REGIONALES - NO MODIFICAN DB ORIGINAL
+   ============================================================ */
+function initRegionalConfig() {
+  const countrySelect = document.getElementById('country-select');
+  if (!countrySelect) return;
+  
+  const countries = Object.keys(REGIONAL_DATA).sort();
+  
+  countries.forEach(country => {
+    const option = document.createElement('option');
+    option.value = country;
+    option.textContent = country;
+    countrySelect.appendChild(option);
+  });
+
+  countrySelect.addEventListener('change', (e) => {
+    selectedCountry = e.target.value;
+    updateRegionSelector();
+    updateTransportTypes();
+    localStorage.setItem('selected_country', selectedCountry);
+  });
+
+  // Cargar selección previa
+  const savedCountry = localStorage.getItem('selected_country');
+  if (savedCountry && REGIONAL_DATA[savedCountry]) {
+    countrySelect.value = savedCountry;
+    selectedCountry = savedCountry;
+    updateRegionSelector();
+    updateTransportTypes();
+  }
+}
+
+function updateRegionSelector() {
+  const regionSelect = document.getElementById('region-select');
+  regionSelect.innerHTML = '<option value="">Selecciona una región</option>';
+  regionSelect.disabled = false;
+
+  if (selectedCountry && REGIONAL_DATA[selectedCountry]) {
+    const regions = Object.keys(REGIONAL_DATA[selectedCountry].regions).sort();
+    
+    regions.forEach(region => {
+      const option = document.createElement('option');
+      option.value = region;
+      option.textContent = region;
+      regionSelect.appendChild(option);
+    });
+
+    regionSelect.addEventListener('change', (e) => {
+      selectedRegion = e.target.value;
+      localStorage.setItem('selected_region', selectedRegion);
+      
+      if (selectedRegion && REGIONAL_DATA[selectedCountry].regions[selectedRegion]) {
+        regionalMapCenter = REGIONAL_DATA[selectedCountry].regions[selectedRegion];
+      }
+    });
+
+    // Cargar región previa
+    const savedRegion = localStorage.getItem('selected_region');
+    if (savedRegion && REGIONAL_DATA[selectedCountry].regions[savedRegion]) {
+      regionSelect.value = savedRegion;
+      selectedRegion = savedRegion;
+      regionalMapCenter = REGIONAL_DATA[selectedCountry].regions[savedRegion];
+    }
+  }
+}
+
+function updateTransportTypes() {
+  const transportTypes = document.querySelectorAll('.transport-btn');
+  
+  if (selectedCountry && REGIONAL_DATA[selectedCountry]) {
+    const availableTypes = REGIONAL_DATA[selectedCountry].transportTypes;
+    
+    transportTypes.forEach(btn => {
+      const type = btn.dataset.type;
+      if (availableTypes.includes(type)) {
+        btn.style.display = 'flex';
+        btn.style.opacity = '1';
+      } else {
+        btn.style.display = 'none';
+        btn.classList.remove('active');
+      }
+    });
+    
+    if (!availableTypes.includes(selectedTransportType)) {
+      selectedTransportType = availableTypes[0];
+      updateTransportButtonStates();
+    }
+  }
+}
+
+function initTransportButtons() {
+  const transportBtns = document.querySelectorAll('.transport-btn');
+  
+  transportBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      transportBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedTransportType = btn.dataset.type;
+      localStorage.setItem('selected_transport_type', selectedTransportType);
+      
+      // Actualizar el atributo data-transport para cambiar colores inmediatamente
+      document.body.setAttribute('data-transport', selectedTransportType);
+      
+      // Aplicar filtro de transporte si estamos en la app
+      filterLinesByTransportType();
+      
+      // NUEVO v6.0: Actualizar visibilidad de controles de seguimiento
+      updateTrackingControlsVisibility();
+    });
+  });
+
+
+  const savedType = localStorage.getItem('selected_transport_type');
+  if (savedType) {
+    selectedTransportType = savedType;
+  }
+  updateTransportButtonStates();
+  
+  // Aplicar color inicial
+  document.body.setAttribute('data-transport', selectedTransportType);
+  
+  // NUEVO v6.0: Inicializar controles de seguimiento
+  updateTrackingControlsVisibility();
+}
+
+// Nueva función para filtrar líneas por tipo de transporte
+function filterLinesByTransportType() {
+  if (!selectedTransportType) return;
+  
+  // Obtener todas las líneas visibles
+  const allLines = document.querySelectorAll('.line-row');
+  
+  allLines.forEach(lineRow => {
+    const lineName = lineRow.querySelector('.line-btn span')?.textContent || '';
+    
+    // Lógica de filtrado basada en el nombre o metadata
+    // Por ahora mostramos todo si no hay filtro específico
+    // Puedes ajustar esta lógica según tus necesidades
+    
+    // Ejemplo: ocultar líneas que no coincidan con el tipo seleccionado
+    // if (selectedTransportType === 'metro' && !lineName.toLowerCase().includes('metro')) {
+    //   lineRow.style.display = 'none';
+    // } else {
+    //   lineRow.style.display = 'flex';
+    // }
+    
+    // Por ahora dejamos visible todo
+    lineRow.style.display = '';
+  });
+}
+
+
+function updateTransportButtonStates() {
+  const transportBtns = document.querySelectorAll('.transport-btn');
+  transportBtns.forEach(btn => {
+    if (btn.dataset.type === selectedTransportType && btn.style.display !== 'none') {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  
+  // Aplicar tema de color según tipo de transporte
+  document.body.setAttribute('data-transport', selectedTransportType);
+}
+
+
+
+
+
+</script>
+</body>
+</html>
