@@ -1513,6 +1513,167 @@
       box-shadow: 0 2px 6px rgba(0, 240, 192, 0.25);
     }
 
+    /* ============================================================
+       MEJORAS RESPONSIVE PARA MÓVILES - NUEVO v6.0
+       ============================================================ */
+    @media (max-width: 600px) {
+      /* Home screen adjustments */
+      #home-screen {
+        padding: 15px 10px;
+        justify-content: flex-start;
+        padding-top: 60px;
+      }
+
+      .lang-selector-home {
+        top: 10px;
+        right: 10px;
+        max-width: 150px;
+        gap: 3px;
+      }
+
+      .lang-btn {
+        font-size: 0.6rem;
+        padding: 4px 8px;
+        border-radius: 14px;
+      }
+
+      .lang-flag {
+        font-size: 0.85rem;
+      }
+
+      /* Hero section */
+      .home-hero {
+        margin-bottom: 20px;
+        margin-top: 20px;
+      }
+
+      .logo-badge {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+        margin-bottom: 16px;
+      }
+
+      .home-hero h1 {
+        font-size: 1.8rem;
+        margin-bottom: 6px;
+      }
+
+      .home-hero p {
+        font-size: 0.85rem;
+        max-width: 260px;
+      }
+
+      .stats-pill {
+        font-size: 0.7rem;
+        padding: 5px 12px;
+      }
+
+      /* Menu grid */
+      .menu-grid {
+        gap: 12px;
+        max-width: 100%;
+        margin-bottom: 18px;
+      }
+
+      .menu-card {
+        padding: 18px 12px;
+        gap: 10px;
+      }
+
+      .menu-card i {
+        font-size: 1.4rem;
+      }
+
+      .menu-card span {
+        font-size: 0.8rem;
+      }
+
+      /* Config section */
+      .config-section {
+        padding: 14px;
+        margin-bottom: 18px;
+      }
+
+      .config-title {
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+      }
+
+      .form-select {
+        font-size: 0.85rem;
+        padding: 9px 11px;
+      }
+
+      .transport-types {
+        gap: 6px;
+      }
+
+      .transport-btn {
+        padding: 8px 6px;
+        font-size: 0.7rem;
+        min-width: 70px;
+      }
+
+      .transport-btn i {
+        font-size: 0.95rem;
+      }
+
+      /* Home actions */
+      #home-actions {
+        gap: 6px;
+        margin-top: 14px;
+      }
+
+      #home-actions .btn {
+        padding: 9px 12px;
+        font-size: 0.75rem;
+      }
+
+      /* Guide button */
+      .guide-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+        bottom: 15px;
+        left: 15px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      #home-screen {
+        padding: 12px 8px;
+        padding-top: 55px;
+      }
+
+      .home-hero h1 {
+        font-size: 1.6rem;
+      }
+
+      .home-hero p {
+        font-size: 0.8rem;
+      }
+
+      .menu-card {
+        padding: 16px 10px;
+      }
+
+      .config-section {
+        padding: 12px;
+      }
+
+      .transport-btn {
+        font-size: 0.65rem;
+        padding: 7px 5px;
+        min-width: 65px;
+      }
+
+      #home-actions .btn {
+        padding: 8px 10px;
+        font-size: 0.7rem;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1696,22 +1857,10 @@
           <i class="fas fa-bus-alt"></i>
           <span data-i18n="transport.trolley">Trolley</span>
         </div>
-        <div class="transport-btn" data-type="funicular">
-          <i class="fas fa-cable-car"></i>
-          <span data-i18n="transport.funicular">Funicular</span>
-        </div>
-        <div class="transport-btn" data-type="teleferico">
-          <i class="fas fa-mountain"></i>
-          <span data-i18n="transport.cablecar">Teleférico</span>
-        </div>
-        <div class="transport-btn" data-type="brt">
-          <i class="fas fa-bus-simple"></i>
-          <span data-i18n="transport.brt">BRT</span>
-        </div>
-        <div class="transport-btn" data-type="bici">
-          <i class="fas fa-bicycle"></i>
-          <span data-i18n="transport.bike">Bici</span>
-        </div>
+
+
+
+
       </div>
     </div>
   </div>
@@ -1956,6 +2105,101 @@
     <div class="modal-footer">
       <button class="action-btn" onclick="closeModals()">Cancelar</button>
       <button class="action-btn primary" onclick="confirmCopyRamal()">Copiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Guardar Ramal GPS - NUEVO v6.0 -->
+<div class="modal-overlay" id="modalSaveGPS" style="display:none;">
+  <div class="modal-box" style="max-width: 500px;">
+    <h3>💾 Guardar Recorrido GPS</h3>
+    <p style="font-size:0.9rem; margin-bottom: 20px; color: var(--text-secondary);">
+      Selecciona cómo deseas guardar tu recorrido rastreado
+    </p>
+    
+    <div class="input-group">
+      <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+        <input type="radio" name="gpsOption" value="new-line" checked onchange="updateGPSFields()">
+        <div>
+          <strong>Nueva Línea</strong><br>
+          <small style="color: var(--text-secondary);">Crear una línea completamente nueva</small>
+        </div>
+      </label>
+      
+      <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+        <input type="radio" name="gpsOption" value="new-ramal" onchange="updateGPSFields()">
+        <div>
+          <strong>Nuevo Ramal</strong><br>
+          <small style="color: var(--text-secondary);">Agregar como ramal nuevo a una línea existente</small>
+        </div>
+      </label>
+      
+      <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+        <input type="radio" name="gpsOption" value="existing-ramal" onchange="updateGPSFields()">
+        <div>
+          <strong>Ramal Existente</strong><br>
+          <small style="color: var(--text-secondary);">Agregar a un ramal que ya existe</small>
+        </div>
+      </label>
+    </div>
+
+    <!-- Campos para Nueva Línea -->
+    <div id="gpsNewLineFields">
+      <div class="input-group">
+        <label>Nombre de la línea</label>
+        <input type="text" id="gpsLineName" placeholder="Ej: Línea 101">
+      </div>
+      
+      <div class="input-group">
+        <label>Nombre del ramal (opcional)</label>
+        <input type="text" id="gpsRamalName" placeholder="Ej: Ramal A">
+      </div>
+      
+      <div class="input-group">
+        <label>Tipo de línea</label>
+        <select id="gpsLineType">
+          <option value="Urbano">Urbano</option>
+          <option value="InterUrbano">Interurbano</option>
+          <option value="Media Distancia">Media Distancia (Expreso)</option>
+          <option value="Larga Distancia">Larga Distancia (Nocturno)</option>
+        </select>
+      </div>
+      
+      <div class="input-group">
+        <label>Empresa (opcional)</label>
+        <input type="text" id="gpsCompany" placeholder="Nombre de la empresa">
+      </div>
+    </div>
+
+    <!-- Campos para Nuevo Ramal -->
+    <div id="gpsNewRamalFields" style="display:none;">
+      <div class="input-group">
+        <label>Selecciona la línea</label>
+        <select id="gpsSelectLine"></select>
+      </div>
+      
+      <div class="input-group">
+        <label>Nombre del nuevo ramal</label>
+        <input type="text" id="gpsNewRamalName" placeholder="Ej: Ramal B">
+      </div>
+    </div>
+
+    <!-- Campos para Ramal Existente -->
+    <div id="gpsExistingRamalFields" style="display:none;">
+      <div class="input-group">
+        <label>Selecciona la línea</label>
+        <select id="gpsSelectLineExisting" onchange="updateRamalSelect()"></select>
+      </div>
+      
+      <div class="input-group">
+        <label>Selecciona el ramal</label>
+        <select id="gpsSelectRamal"></select>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="action-btn" onclick="closeModals()">Cancelar</button>
+      <button class="action-btn primary" onclick="confirmSaveGPS()">Guardar</button>
     </div>
   </div>
 </div>
@@ -2374,6 +2618,19 @@ function openApp(mode) {
   document.getElementById('app-interface').setAttribute('aria-hidden', 'false');
   document.getElementById('app-title').textContent = t(mode === 'editor' ? 'home.editor' : 'home.viewer');
   document.getElementById('fabCreate').style.display = mode === 'editor' ? 'flex' : 'none';
+  
+  // NUEVO v6.0: Ocultar controles de tracking en modo Visor
+  const trackingControls = document.getElementById('tracking-controls');
+  if (mode === 'viewer') {
+    trackingControls?.classList.remove('visible');
+    // Detener tracking si está activo
+    if (isTracking) {
+      stopTracking();
+    }
+  } else {
+    // En modo editor, mostrar solo si es bus o trolley
+    updateTrackingControlsVisibility();
+  }
   
   setTimeout(() => {
     initMap();
@@ -2948,6 +3205,7 @@ let isTracking = false;
 let trackingPath = [];
 let trackingPolyline = null;
 let trackingStartTime = null;
+let lastTrackingPosition = null; // Nueva variable para controlar distancia mínima
 
 function locateUser() {
   if (!navigator.geolocation) {
@@ -3035,6 +3293,19 @@ function updateTrackingControlsVisibility() {
   }
 }
 
+// Función auxiliar para calcular distancia entre dos puntos en metros (Haversine)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // Radio de la Tierra en metros
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // Retorna distancia en metros
+}
+
 // NUEVA FUNCIÓN: Iniciar seguimiento en tiempo real
 function startTracking() {
   if (isTracking) return;
@@ -3053,6 +3324,7 @@ function startTracking() {
   isTracking = true;
   trackingPath = [];
   trackingStartTime = new Date();
+  lastTrackingPosition = null; // Reiniciar posición previa
   
   // Actualizar UI
   document.getElementById('start-tracking-btn').style.display = 'none';
@@ -3063,7 +3335,7 @@ function startTracking() {
   
   showToast('Seguimiento iniciado', 'success');
   
-  // Iniciar watchPosition para seguimiento continuo
+  // Iniciar watchPosition para seguimiento continuo cada 2 segundos
   watchPositionId = navigator.geolocation.watchPosition(
     (position) => {
       const lat = position.coords.latitude;
@@ -3073,11 +3345,35 @@ function startTracking() {
       // Actualizar marcador de ubicación
       updateUserLocationMarker(lat, lng, accuracy);
       
-      // Agregar punto al recorrido
-      trackingPath.push([lat, lng]);
+      // Verificar si debemos agregar el punto
+      let shouldAdd = false;
       
-      // Actualizar polilínea del recorrido
-      updateTrackingPolyline();
+      if (!lastTrackingPosition) {
+        // Primer punto, siempre agregarlo
+        shouldAdd = true;
+      } else {
+        // Calcular distancia desde el último punto registrado
+        const distance = calculateDistance(
+          lastTrackingPosition.lat, 
+          lastTrackingPosition.lng,
+          lat,
+          lng
+        );
+        
+        // Solo agregar si se movió al menos 0.5 metros
+        if (distance >= 0.5) {
+          shouldAdd = true;
+        }
+      }
+      
+      if (shouldAdd) {
+        // Agregar punto al recorrido
+        trackingPath.push([lat, lng]);
+        lastTrackingPosition = { lat, lng };
+        
+        // Actualizar polilínea del recorrido
+        updateTrackingPolyline();
+      }
       
       // Actualizar estado
       const duration = Math.floor((new Date() - trackingStartTime) / 1000);
@@ -3153,45 +3449,184 @@ function saveTrackedRoute() {
     return;
   }
   
-  const lineName = prompt('Nombre de la línea rastreada:', 
-    `Recorrido ${new Date().toLocaleTimeString()}`);
+  // Abrir modal de opciones
+  openSaveGPSModal();
+}
+
+// Abrir modal para guardar recorrido GPS
+function openSaveGPSModal() {
+  const modal = document.getElementById('modalSaveGPS');
+  modal.style.display = 'flex';
   
-  if (!lineName || lineName.trim() === '') {
-    showToast('Cancelado', 'info');
-    return;
-  }
+  // Rellenar selectores de líneas
+  populateLineSelects();
   
-  const company = prompt('Nombre de la empresa (opcional):', '') || 'GPS Tracking';
-  
-  // Crear estructura de la línea
-  updateCurrentRegionKey();
-  const cat = 'Urbano'; // Por defecto urbano para recorridos rastreados
-  const provDB = getProvDB();
-  
-  if (!provDB[cat]) provDB[cat] = {};
-  if (!provDB[cat][lineName]) {
-    provDB[cat][lineName] = {
-      company: company,
-      official: false,
-      ramales: {}
-    };
-  }
-  
-  // Crear ramal con el recorrido rastreado
-  const ramalName = 'GPS Track ' + new Date().toLocaleTimeString('es', {
+  // Establecer valores por defecto
+  const timeString = new Date().toLocaleTimeString('es', {
     hour: '2-digit',
     minute: '2-digit'
   });
+  document.getElementById('gpsLineName').value = `Recorrido ${timeString}`;
+  document.getElementById('gpsRamalName').value = `GPS ${timeString}`;
+  document.getElementById('gpsNewRamalName').value = `GPS ${timeString}`;
   
-  provDB[cat][lineName].ramales[ramalName] = {
-    route: trackingPath,
-    stops: [] // No hay paradas definidas en el seguimiento GPS
-  };
+  // Seleccionar opción por defecto
+  document.querySelector('input[name="gpsOption"][value="new-line"]').checked = true;
+  updateGPSFields();
+}
+
+// Actualizar campos según opción seleccionada
+function updateGPSFields() {
+  const option = document.querySelector('input[name="gpsOption"]:checked').value;
   
-  saveDB();
-  refreshCategoriesPanel();
+  document.getElementById('gpsNewLineFields').style.display = 
+    option === 'new-line' ? 'block' : 'none';
+  document.getElementById('gpsNewRamalFields').style.display = 
+    option === 'new-ramal' ? 'block' : 'none';
+  document.getElementById('gpsExistingRamalFields').style.display = 
+    option === 'existing-ramal' ? 'block' : 'none';
+}
+
+// Poblar selectores con líneas existentes
+function populateLineSelects() {
+  updateCurrentRegionKey();
+  const filteredDB = getFilteredDB();
   
-  showToast(`✅ Recorrido "${lineName}" guardado con ${trackingPath.length} puntos`, 'success');
+  const selectNew = document.getElementById('gpsSelectLine');
+  const selectExisting = document.getElementById('gpsSelectLineExisting');
+  
+  selectNew.innerHTML = '<option value="">-- Selecciona una línea --</option>';
+  selectExisting.innerHTML = '<option value="">-- Selecciona una línea --</option>';
+  
+  availableCategories.forEach(cat => {
+    const lines = filteredDB[cat];
+    Object.keys(lines).forEach(lineName => {
+      const optNew = document.createElement('option');
+      optNew.value = JSON.stringify({cat, lineName});
+      optNew.text = `[${cat}] ${lineName}`;
+      selectNew.appendChild(optNew);
+      
+      const optExisting = document.createElement('option');
+      optExisting.value = JSON.stringify({cat, lineName});
+      optExisting.text = `[${cat}] ${lineName}`;
+      selectExisting.appendChild(optExisting);
+    });
+  });
+}
+
+// Actualizar selector de ramales según línea seleccionada
+function updateRamalSelect() {
+  const selectLine = document.getElementById('gpsSelectLineExisting');
+  const selectRamal = document.getElementById('gpsSelectRamal');
+  
+  selectRamal.innerHTML = '<option value="">-- Selecciona un ramal --</option>';
+  
+  if (!selectLine.value) return;
+  
+  const {cat, lineName} = JSON.parse(selectLine.value);
+  const filteredDB = getFilteredDB();
+  const ramales = Object.keys(filteredDB[cat][lineName]).filter(k => k !== '_info');
+  
+  ramales.forEach(ramalName => {
+    const opt = document.createElement('option');
+    opt.value = ramalName;
+    opt.text = ramalName;
+    selectRamal.appendChild(opt);
+  });
+}
+
+// Confirmar guardado de recorrido GPS
+function confirmSaveGPS() {
+  const option = document.querySelector('input[name="gpsOption"]:checked').value;
+  const filteredDB = getFilteredDB();
+  
+  if (option === 'new-line') {
+    // Crear nueva línea
+    const lineName = document.getElementById('gpsLineName').value.trim();
+    const ramalName = document.getElementById('gpsRamalName').value.trim() || 'Principal';
+    const lineType = document.getElementById('gpsLineType').value;
+    const company = document.getElementById('gpsCompany').value.trim() || 'GPS Tracking';
+    
+    if (!lineName) {
+      showToast('Ingresa un nombre para la línea', 'error');
+      return;
+    }
+    
+    if (!filteredDB[lineType]) filteredDB[lineType] = {};
+    
+    if (filteredDB[lineType][lineName]) {
+      showToast('Ya existe una línea con ese nombre', 'error');
+      return;
+    }
+    
+    filteredDB[lineType][lineName] = {
+      _info: {
+        company: company,
+        isReal: false,
+        transportType: selectedTransportType || 'bus'
+      }
+    };
+    
+    filteredDB[lineType][lineName][ramalName] = trackingPath.map(point => ({
+      lat: point[0],
+      lng: point[1]
+    }));
+    
+    saveFilteredDB(filteredDB);
+    showToast(`✅ Línea "${lineName}" creada con ${trackingPath.length} puntos`, 'success');
+    
+  } else if (option === 'new-ramal') {
+    // Agregar como nuevo ramal
+    const selectLine = document.getElementById('gpsSelectLine');
+    const ramalName = document.getElementById('gpsNewRamalName').value.trim();
+    
+    if (!selectLine.value) {
+      showToast('Selecciona una línea', 'error');
+      return;
+    }
+    
+    if (!ramalName) {
+      showToast('Ingresa un nombre para el ramal', 'error');
+      return;
+    }
+    
+    const {cat, lineName} = JSON.parse(selectLine.value);
+    
+    if (filteredDB[cat][lineName][ramalName]) {
+      showToast('Ya existe un ramal con ese nombre', 'error');
+      return;
+    }
+    
+    filteredDB[cat][lineName][ramalName] = trackingPath.map(point => ({
+      lat: point[0],
+      lng: point[1]
+    }));
+    
+    saveFilteredDB(filteredDB);
+    showToast(`✅ Ramal "${ramalName}" agregado a "${lineName}"`, 'success');
+    
+  } else if (option === 'existing-ramal') {
+    // Agregar a ramal existente
+    const selectLine = document.getElementById('gpsSelectLineExisting');
+    const selectRamal = document.getElementById('gpsSelectRamal');
+    
+    if (!selectLine.value || !selectRamal.value) {
+      showToast('Selecciona una línea y un ramal', 'error');
+      return;
+    }
+    
+    const {cat, lineName} = JSON.parse(selectLine.value);
+    const ramalName = selectRamal.value;
+    
+    // Reemplazar el recorrido del ramal existente
+    filteredDB[cat][lineName][ramalName] = trackingPath.map(point => ({
+      lat: point[0],
+      lng: point[1]
+    }));
+    
+    saveFilteredDB(filteredDB);
+    showToast(`✅ Ramal "${ramalName}" actualizado con ${trackingPath.length} puntos`, 'success');
+  }
   
   // Limpiar seguimiento
   trackingPath = [];
@@ -3203,6 +3638,9 @@ function saveTrackedRoute() {
   // Resetear UI
   document.getElementById('save-route-btn').style.display = 'none';
   document.getElementById('tracking-status').textContent = 'Recorrido guardado';
+  
+  closeModals();
+  renderCategories();
 }
 
 function toggleMultiDelete() {
@@ -3480,7 +3918,7 @@ const REGIONAL_DATA = {
       "Sevilla": { lat: 37.3891, lng: -5.9845, zoom: 11 },
       "Bilbao": { lat: 43.2627, lng: -2.9253, zoom: 12 }
     },
-    transportTypes: ["bus", "metro", "tren", "tranvia", "funicular", "bici"]
+    transportTypes: ["bus", "metro", "tren", "tranvia"]
   },
   "Argentina": {
     regions: {
@@ -3499,7 +3937,7 @@ const REGIONAL_DATA = {
       "Monterrey": { lat: 25.6866, lng: -100.3161, zoom: 11 },
       "Puebla": { lat: 19.0414, lng: -98.2063, zoom: 11 }
     },
-    transportTypes: ["bus", "metro", "tren", "brt", "bici"]
+    transportTypes: ["bus", "metro", "tren"]
   },
   "Chile": {
     regions: {
@@ -3507,7 +3945,7 @@ const REGIONAL_DATA = {
       "Valparaíso": { lat: -33.0472, lng: -71.6127, zoom: 12 },
       "Concepción": { lat: -36.8201, lng: -73.0444, zoom: 11 }
     },
-    transportTypes: ["bus", "metro", "tren", "trolley", "funicular", "bici"]
+    transportTypes: ["bus", "metro", "tren", "trolley"]
   },
   "Colombia": {
     regions: {
@@ -3515,7 +3953,7 @@ const REGIONAL_DATA = {
       "Medellín": { lat: 6.2442, lng: -75.5812, zoom: 11 },
       "Cali": { lat: 3.4516, lng: -76.5320, zoom: 11 }
     },
-    transportTypes: ["bus", "metro", "tren", "teleferico", "brt", "bici"]
+    transportTypes: ["bus", "metro", "tren"]
   },
   "Perú": {
     regions: {
@@ -3523,7 +3961,7 @@ const REGIONAL_DATA = {
       "Arequipa": { lat: -16.4090, lng: -71.5375, zoom: 12 },
       "Cusco": { lat: -13.5319, lng: -71.9675, zoom: 12 }
     },
-    transportTypes: ["bus", "metro", "tren", "teleferico", "bici"]
+    transportTypes: ["bus", "metro", "tren"]
   },
   "Brasil": {
     regions: {
