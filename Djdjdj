@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COLECTUCUS Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0d0f12;
+    --surface:  #151820;
+    --panel:    #1c2030;
+    --border:   #2a3045;
+    --accent:   #f4a318;
+    --accent2:  #3b82f6;
+    --danger:   #ef4444;
+    --success:  #22c55e;
+    --warn:     #eab308;
+    --text:     #e8eaf0;
+    --muted:    #6b7490;
+    --tag-u:    #3b82f6;
+    --tag-i:    #a855f7;
+    --tag-r:    #22c55e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  /* ─── LOGIN OVERLAY ─── */
+  .login-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 1.5rem;
+  }
+  .login-box {
+    background: var(--surface); border: 1px solid var(--border); border-top: 4px solid var(--accent);
+    border-radius: 12px; padding: 2.5rem 2rem; width: 100%; max-width: 440px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    text-align: center; transition: all 0.3s ease;
+  }
+  .login-box h2 { font-family: 'Bebas Neue'; color: var(--text); letter-spacing: 4px; font-size: 2.2rem; margin-bottom: 0.5rem; }
+  .login-box h2 span { color: var(--accent); }
+  .login-box p.desc { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+  .login-error { color: var(--danger); font-size: 0.85rem; margin-top: 1rem; display: none; background: rgba(239,68,68,0.1); padding: 0.5rem; border-radius: 4px; border: 1px solid rgba(239,68,68,0.3); }
+
+  .empresa-greeting { display: none; flex-direction: column; align-items: center; margin-bottom: 1.5rem; animation: popIn 0.3s ease; }
+  .empresa-greeting .bus-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .empresa-greeting h3 { color: var(--accent); font-family: 'Bebas Neue'; font-size: 1.6rem; letter-spacing: 1px; }
+
+  /* ─── TOPBAR ─── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 1.5rem; height: 60px;
+    background: var(--surface); border-bottom: 2px solid var(--accent);
+    position: sticky; top: 0; z-index: 1000;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 15px; }
+  .menu-toggle { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
+  .logo { font-family: 'Bebas Neue'; font-size: 1.6rem; letter-spacing: 4px; display: flex; align-items: center; gap: 8px;}
+  .logo .c1 { color: var(--accent); }
+  .logo .c2 { color: var(--text); }
+  .logo .c3 { color: var(--muted); font-size: 0.9rem; letter-spacing: 2px; }
+  .auth-info { display: flex; align-items: center; gap: 10px; }
+  .user-badge { background: var(--panel); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-family: 'DM Mono'; color: var(--accent); white-space: nowrap;}
+  .btn-logout { background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-family: 'DM Mono'; font-size: 0.7rem; transition: all 0.2s; white-space: nowrap;}
+  .btn-logout:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+  
+  .db-status { display: flex; align-items: center; gap: 6px; font-family: 'DM Mono'; font-size: .7rem; color: var(--muted); margin-left:10px; border-left: 1px solid var(--border); padding-left: 10px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: background .3s; }
+  .dot.ok  { background: var(--success); box-shadow: 0 0 6px var(--success); }
+  .dot.err { background: var(--danger);  box-shadow: 0 0 6px var(--danger); }
+
+  /* ─── LAYOUT ─── */
+  .layout { display: flex; min-height: calc(100vh - 60px); position: relative; }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar { width: 320px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem 1rem; overflow-y: auto; transition: transform 0.3s ease; }
+  .sidebar-title { font-family: 'Bebas Neue'; font-size: 1rem; letter-spacing: 3px; color: var(--muted); padding: 0 .5rem .8rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+  .empresa-item { border: 1px solid var(--border); border-radius: 6px; margin-bottom: .6rem; overflow: hidden; transition: border-color .2s; }
+  .empresa-item.active { border-color: var(--accent); }
+  .empresa-header { display: flex; align-items: center; gap: 6px; padding: .75rem 1rem; cursor: pointer; background: var(--panel); transition: background .2s; }
+  .empresa-header:hover { background: #222840; }
+  .empresa-name { font-weight: 700; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+  .empresa-arrow { font-size: .7rem; color: var(--muted); transition: transform .25s; }
+  .empresa-item.open .empresa-arrow { transform: rotate(90deg); }
+  .icon-btn { background: none; border: none; cursor: pointer; padding: 2px 5px; border-radius: 3px; font-size: .8rem; opacity: .5; transition: opacity .2s, background .2s; }
+  .icon-btn:hover { opacity: 1; background: rgba(255,255,255,.07); }
+  .icon-btn.edit  { color: var(--warn); }
+  .icon-btn.del   { color: var(--danger); }
+  .lineas-list { display: none; background: var(--bg); padding: .4rem .5rem; }
+  .empresa-item.open .lineas-list { display: block; }
+  .linea-item { display: flex; align-items: center; gap: 4px; padding: .45rem .6rem; border-radius: 4px; cursor: pointer; font-size: .82rem; transition: background .15s; }
+  .linea-item:hover { background: var(--panel); }
+  .linea-item.active { background: rgba(244,163,24,.12); color: var(--accent); }
+  .linea-item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tipo-badge { font-family: 'DM Mono'; font-size: .65rem; padding: 1px 5px; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+  .tipo-badge.U { background: rgba(59,130,246,.25); color: var(--tag-u); }
+  .tipo-badge.I { background: rgba(168,85,247,.25); color: var(--tag-i); }
+  .tipo-badge.R { background: rgba(34,197,94,.25);  color: var(--tag-r); }
+  .add-empresa-btn { width: 100%; margin-top: 1rem; padding: .7rem; background: transparent; border: 1px dashed var(--accent); border-radius: 6px; color: var(--accent); font-family: 'Syne'; font-size: .85rem; font-weight: 600; cursor: pointer; transition: background .2s; }
+  .add-empresa-btn:hover { background: rgba(244,163,24,.08); }
+
+  /* ─── MAIN ─── */
+  .main { flex: 1; padding: 2rem; overflow-y: auto; background: var(--bg); width: 100%; }
+  .breadcrumb { font-family: 'DM Mono'; font-size: .75rem; color: var(--muted); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .breadcrumb .sep { color: var(--border); }
+  .breadcrumb .crumb { color: var(--text); }
+  .breadcrumb .link { color: var(--accent2); cursor: pointer; text-decoration: underline; }
+  .section-title { font-family: 'Bebas Neue'; font-size: 1.6rem; letter-spacing: 3px; color: var(--accent); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 12px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ─── TABS ─── */
+  .tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); overflow-x: auto;}
+  .tab-btn { padding: .7rem 1.2rem; background: none; border: none; color: var(--muted); font-family: 'Syne'; font-size: .85rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .2s, border-color .2s; letter-spacing: .5px; white-space: nowrap;}
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ─── CARDS ─── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; transition: border-color .2s, transform .15s; }
+  .card:hover { border-color: var(--accent2); transform: translateY(-1px); }
+  .card-id { font-family: 'DM Mono'; font-size: .65rem; color: var(--muted); margin-bottom: .5rem; }
+  .card-title { font-size: 1rem; font-weight: 700; margin-bottom: .3rem; }
+  .card-sub { font-size: .8rem; color: var(--muted); margin-top: .2rem; }
+  .card-actions { display: flex; gap: 6px; margin-top: .9rem; flex-wrap: wrap; }
+  .btn-sm { padding: 4px 10px; border-radius: 4px; font-family: 'DM Mono'; font-size: .72rem; border: none; cursor: pointer; transition: opacity .2s; font-weight: 500; }
+  .btn-sm:hover { opacity: .8; }
+  .btn-sm.primary { background: var(--accent); color: #000; }
+  .btn-sm.edit    { background: rgba(234,179,8,.15); color: var(--warn); border: 1px solid rgba(234,179,8,.3); }
+  .btn-sm.danger  { background: rgba(239,68,68,.15); color: var(--danger); border: 1px solid rgba(239,68,68,.3); }
+  .btn-sm.cancel  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+  /* ─── FORM ─── */
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 1.2rem; text-align: left;}
+  .field label { font-size: .75rem; font-weight: 600; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+  .field input, .field select, .field textarea { background: var(--bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: 'DM Mono'; font-size: .85rem; padding: .7rem .8rem; outline: none; transition: border-color .2s; width: 100%; }
+  .field input:disabled, .field select:disabled, .field textarea:disabled { opacity: 0.5; cursor: not-allowed; }
+  .field input:focus:not(:disabled), .field select:focus:not(:disabled), .field textarea:focus:not(:disabled) { border-color: var(--accent); }
+  .field select option { background: var(--panel); }
+  .field textarea { resize: vertical; min-height: 110px; }
+  .submit-btn { padding: .7rem 2rem; background: var(--accent); color: #000; font-family: 'Bebas Neue'; font-size: 1.1rem; letter-spacing: 2px; border: none; border-radius: 5px; cursor: pointer; transition: opacity .2s, transform .1s; width: 100%;}
+  @media (min-width: 480px) { .submit-btn { width: auto; } }
+  .submit-btn:hover { opacity: .88; }
+  .submit-btn:active { transform: scale(.97); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  /* ─── CREDENCIALES (APODOS) ─── */
+  .cred-list-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); padding: 0.8rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; }
+  .cred-info { display: flex; flex-direction: column; gap: 3px; }
+  .cred-apodo { font-weight: bold; font-size: 0.9rem; color: var(--text); }
+  .cred-pass { font-family: 'DM Mono'; font-size: 0.7rem; color: var(--muted); }
+  
+  /* ─── PERMISOS GRID GRANULAR ─── */
+  .perm-grid-granular { display: grid; grid-template-columns: 1fr; gap: 0.4rem; background: var(--bg); padding: 1rem; border-radius: 6px; border: 1px solid var(--border); max-height: 250px; overflow-y: auto;}
+  @media (min-width: 600px) { .perm-grid-granular { grid-template-columns: 1fr 1fr; } }
+  .perm-grid-granular label { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--text); text-transform: none; cursor: pointer; padding: 4px 0;}
+  .perm-grid-granular input[type="checkbox"] { width: 14px; height: 14px; margin: 0; cursor: pointer; accent-color: var(--accent); flex-shrink: 0;}
+
+  /* ─── COORDS PREVIEW ─── */
+  .coords-info { background: rgba(59,130,246,.07); border: 1px solid rgba(59,130,246,.2); border-radius: 6px; padding: .8rem 1rem; font-family: 'DM Mono'; font-size: .75rem; color: var(--muted); margin-bottom: 1rem; }
+  .coords-info strong { color: var(--accent2); }
+  .coords-count { display: inline-block; margin-top: .4rem; background: rgba(34,197,94,.15); color: var(--success); padding: 2px 8px; border-radius: 10px; font-size: .72rem; }
+  .preview-map { width: 100%; height: 200px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; position: relative; overflow: hidden; margin-top: .5rem; display: none; }
+
+  /* ─── GRILLA DE HORARIOS ─── */
+  .grilla-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-family: 'DM Mono'; font-size: 0.75rem; color: var(--text); background: var(--panel); border: 1px solid var(--border); }
+  .grilla-table th, .grilla-table td { border: 1px solid var(--border); padding: 0.5rem; text-align: left; vertical-align: middle; }
+  .grilla-table th { background: #222840; color: var(--accent); text-transform: uppercase; font-size: 0.65rem; letter-spacing: 1px;}
+  .grilla-table input[type="text"], .grilla-table input[type="time"] { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 6px; border-radius: 4px; outline: none; font-family: 'DM Mono'; }
+  .grilla-table input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+  .grilla-table input:focus { border-color: var(--accent); }
+  .grilla-table input:disabled { opacity: 0.5; cursor: not-allowed; }
+  .dias-checkboxes { display: flex; gap: 6px; flex-wrap: wrap; min-width: 140px; }
+  .dias-checkboxes label { display: flex; align-items: center; gap: 3px; font-size: 0.65rem; cursor: pointer; }
+  .dias-checkboxes input[type="checkbox"] { width: 12px; height: 12px; accent-color: var(--accent); cursor: pointer;}
+  .btn-del-grid { background: rgba(239,68,68,.15); color: var(--danger); border: 1px solid rgba(239,68,68,.3); border-radius: 3px; cursor: pointer; padding: 2px 6px; font-weight: bold; transition: background .2s;}
+  .btn-del-grid:hover { background: var(--danger); color: #fff; }
+
+  /* ─── TOAST ─── */
+  .toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast { background: var(--panel); border-left: 4px solid var(--success); border-radius: 4px; padding: .8rem 1.2rem; font-size: .82rem; box-shadow: 0 4px 20px rgba(0,0,0,.5); animation: slideIn .3s ease, fadeOut .4s 2.6s ease forwards; max-width: 320px; }
+  .toast.error { border-left-color: var(--danger); }
+  @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOut { to { opacity: 0; transform: translateX(100px); } }
+
+  /* ─── MODAL ─── */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--panel); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 10px; padding: 1.5rem; width: 600px; max-width: 92vw; max-height: 90vh; overflow-y: auto; animation: popIn .2s ease; }
+  @media (min-width: 480px) { .modal { padding: 2rem; } }
+  .modal.warn-modal { border-top-color: var(--danger); width: 400px; }
+  @keyframes popIn { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal h3 { font-family: 'Bebas Neue'; font-size: 1.4rem; letter-spacing: 2px; color: var(--accent); margin-bottom: 1.4rem; }
+  .modal.warn-modal h3 { color: var(--danger); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); flex-wrap: wrap;}
+  .btn-cancel { padding: .6rem 1.2rem; background: transparent; border: 1px solid var(--border); border-radius: 5px; color: var(--muted); font-family: 'Syne'; font-size: .85rem; cursor: pointer; flex-grow: 1; text-align: center;}
+  @media (min-width: 480px) { .btn-cancel { flex-grow: 0; } }
+  .btn-cancel:hover { border-color: var(--text); color: var(--text); }
+  .btn-danger { padding: .6rem 1.2rem; background: var(--danger); border: none; border-radius: 5px; color: #fff; font-family: 'Bebas Neue'; font-size: 1.1rem; letter-spacing: 1px; cursor: pointer; flex-grow: 1; text-align: center;}
+  @media (min-width: 480px) { .btn-danger { flex-grow: 0; } }
+
+  /* ─── EMPTY / PLACEHOLDER ─── */
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: .85rem; }
+  .empty .big { font-family: 'Bebas Neue'; font-size: 3rem; display: block; opacity: .15; margin-bottom: 0.5rem;}
+  .placeholder-msg { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 400px; text-align: center; color: var(--muted); padding: 2rem;}
+  .placeholder-msg .icon { font-size: 3rem; opacity: .2; margin-bottom: 1rem; }
+
+  /* MOBILE ADAPTATION */
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 900; backdrop-filter: blur(2px); }
+  @media (max-width: 768px) {
+    .menu-toggle { display: block; }
+    .sidebar { position: fixed; top: 60px; left: -320px; bottom: 0; z-index: 950; height: calc(100vh - 60px); }
+    .sidebar.open { left: 0; transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .form-row { grid-template-columns: 1fr; gap: 0; }
+    .main { padding: 1.5rem 1rem; }
+    .auth-info .db-status { display: none; } /* Hide text on very small screens to save space */
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── LOGIN OVERLAY ─── -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    
+    <!-- PASO 1: ID -->
+    <div id="loginStep1">
+      <h2><span>COLEC</span>TUCUS <span>ADMIN</span></h2>
+      <p class="desc">Ingresá tu ID de Empresa para acceder.</p>
+      <div class="field">
+        <label>ID de Empresa / Código</label>
+        <input type="text" id="loginId" placeholder="Ej: CENTRAL o ID Firebase" autocomplete="off">
+      </div>
+      <button class="submit-btn" style="width:100%; margin-top:0.5rem;" onclick="checkLoginId()">SIGUIENTE</button>
+    </div>
+
+    <!-- PASO 2: CONTRASEÑA -->
+    <div id="loginStep2" style="display:none;">
+      <div class="empresa-greeting" id="empresaGreeting">
+        <div class="bus-icon">🚌</div>
+        <h3 id="loginCompanyName">Nombre Empresa</h3>
+      </div>
+      <p class="desc">Ingresá tu contraseña asignada.</p>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="loginPass" placeholder="Tu contraseña" autocomplete="off">
+      </div>
+      <div style="display:flex; gap:10px; margin-top:1rem;">
+        <button class="btn-cancel" style="width:40%;" onclick="resetLogin()">VOLVER</button>
+        <button class="submit-btn" style="width:60%;" onclick="doLogin()">ENTRAR</button>
+      </div>
+    </div>
+
+    <p class="login-error" id="loginError"></p>
+  </div>
+</div>
+
+<!-- ─── TOPBAR ─── -->
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="menu-toggle" onclick="toggleMobileMenu()">☰</button>
+    <div class="logo">
+      <span class="c1">COLEC</span><span class="c2">TUCUS</span> <span class="c3">ADMIN</span>
+    </div>
+  </div>
+  <div class="auth-info" id="authInfo" style="display:none;">
+    <span class="user-badge" id="userBadge">Invitado</span>
+    <button class="btn-logout" onclick="doLogout()">Salir</button>
+    <div class="db-status">
+      <div class="dot" id="dbDot"></div>
+      <span id="dbLabel">Conectando...</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- ─── SIDEBAR ─── -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-title">EMPRESAS / LÍNEAS</div>
+    <div id="empresasList"><div class="empty"><small>Cargando datos...</small></div></div>
+    <button class="add-empresa-btn" id="btnSidebarAddEmpresa" style="display:none;" onclick="openModal('empresa')">+ Nueva Empresa</button>
+  </aside>
+  
+  <!-- ─── MAIN CONTENT ─── -->
+  <main class="main" id="mainContent">
+    <div class="placeholder-msg">
+      <div class="icon">🚌</div>
+      <p>Seleccioná una línea del panel izquierdo para comenzar.</p>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ─── MODAL: EMPRESA ─── -->
+<div class="modal-bg" id="modalEmpresa">
+  <div class="modal">
+    <h3 id="modalEmpresaTitle">➕ NUEVA EMPRESA</h3>
+    <input type="hidden" id="empEditId">
+    
+    <div class="form-row">
+      <div class="field">
+        <label>Nombre de Empresa</label>
+        <input type="text" id="empNombre" placeholder="Ej: Empresa Central S.A.">
+      </div>
+      <div class="field">
+        <label>Código Interno</label>
+        <input type="text" id="empCodigo" placeholder="Ej: CENTRAL">
+      </div>
+    </div>
+
+    <!-- Lista de Apodos (Superadmin view) -->
+    <div id="adminCredsSection" style="display:none; margin-top:1rem; border-top:1px solid var(--border); padding-top:1.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h4 style="color:var(--accent); font-family:'Bebas Neue'; letter-spacing:1px; font-size:1.1rem;">🔑 APODOS Y CREDENCIALES</h4>
+        <button class="btn-sm primary" onclick="abrirNuevaCredencial()">+ NUEVO APODO</button>
+      </div>
+      <p style="font-size:0.75rem; color:var(--muted); margin-bottom:1rem;">Gestiona los accesos y permisos individuales (como si fueran líneas).</p>
+      
+      <div id="credListRender">
+        <!-- Lista inyectada por JS -->
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('empresa')">Cancelar</button>
+      <button class="submit-btn" onclick="guardarEmpresa()">GUARDAR EMPRESA</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: CREDENCIAL (APODO) ─── -->
+<div class="modal-bg" id="modalCredencial">
+  <div class="modal">
+    <h3 id="modalCredTitle">✏ EDITAR APODO</h3>
+    <input type="hidden" id="credEditId">
+    
+    <div class="form-row">
+      <div class="field">
+        <label>Apodo / Rol</label>
+        <input type="text" id="credApodo" placeholder="Ej: Operador Tarde">
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="text" id="credPass" placeholder="Contraseña de acceso">
+      </div>
+    </div>
+    
+    <div class="field" style="margin-top:1rem;">
+      <label style="color:var(--accent);">Opciones de Personalización (Permisos)</label>
+      <div class="perm-grid-granular" id="permGridGranular">
+        <label><input type="checkbox" id="p_empName"> Editar nombre de la empresa</label>
+        <label><input type="checkbox" id="p_empId"> Editar ID de la empresa</label>
+        
+        <label><input type="checkbox" id="p_linAdd"> Añadir lineas</label>
+        <label><input type="checkbox" id="p_linDel"> Eliminar lineas</label>
+        <label><input type="checkbox" id="p_linType"> Editar tipo de transporte</label>
+        <label><input type="checkbox" id="p_linName"> Editar nombre de las lineas</label>
+        <label><input type="checkbox" id="p_linDest"> Editar destino general</label>
+        
+        <label><input type="checkbox" id="p_ramAdd"> Añadir ramales</label>
+        <label><input type="checkbox" id="p_ramDel"> Eliminar ramales</label>
+        <label><input type="checkbox" id="p_ramName"> Editar nombre de las ramales</label>
+        <label><input type="checkbox" id="p_ramRec"> Editar recorrido de las ramales</label>
+        
+        <label><input type="checkbox" id="p_intAdd"> Añadir internos</label>
+        <label><input type="checkbox" id="p_intDel"> Eliminar internos</label>
+        <label><input type="checkbox" id="p_intNum"> Editar número de interno</label>
+        <label><input type="checkbox" id="p_intId"> Editar ID del interno</label>
+        <label><input type="checkbox" id="p_intImei"> Editar IMEI del rastreador</label>
+        <label><input type="checkbox" id="p_intCar"> Editar Carrocería del interno</label>
+
+        <label><input type="checkbox" id="p_ramGridEdit"> Editar horarios de grilla</label>
+        <label><input type="checkbox" id="p_ramGridAdd"> Añadir col/fil de grilla</label>
+        <label><input type="checkbox" id="p_ramGridDel"> Borrar col/fil de grilla</label>
+
+        <label><input type="checkbox" id="p_chofAdd"> Añadir chóferes</label>
+        <label><input type="checkbox" id="p_chofEdit"> Editar chóferes</label>
+        <label><input type="checkbox" id="p_chofDel"> Eliminar chóferes</label>
+
+        <!-- NUEVOS PERMISOS SUPERVISORES -->
+        <label><input type="checkbox" id="p_supAdd"> Añadir supervisores</label>
+        <label><input type="checkbox" id="p_supEdit"> Editar supervisores</label>
+        <label><input type="checkbox" id="p_supDel"> Eliminar supervisores</label>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('credencial')">Cancelar</button>
+      <button class="submit-btn" onclick="guardarCredencialTemp()">CONFIRMAR APODO</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: LÍNEA ─── -->
+<div class="modal-bg" id="modalLinea">
+  <div class="modal">
+    <h3 id="modalLineaTitle">➕ NUEVA LÍNEA</h3>
+    <input type="hidden" id="lineaEditId">
+    <div class="field">
+      <label>Tipo de Transporte</label>
+      <select id="lineaTipo">
+        <option value="Urbano">Urbano</option>
+        <option value="Interurbano">Interurbano</option>
+        <option value="Rural">Rural</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Nombre de Línea</label>
+      <input type="text" id="lineaNombre" placeholder="Ej: Línea 5">
+    </div>
+    <div class="field">
+      <label>Destino General</label>
+      <input type="text" id="lineaDestino" placeholder="Ej: Centro — Terminal">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('linea')">Cancelar</button>
+      <button class="submit-btn" onclick="guardarLinea()">GUARDAR LÍNEA</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: RAMAL ─── -->
+<div class="modal-bg" id="modalRamal">
+  <div class="modal">
+    <h3 id="modalRamalTitle">➕ NUEVO RAMAL</h3>
+    <input type="hidden" id="ramalEditId">
+    <input type="hidden" id="ramalEditEid">
+    <input type="hidden" id="ramalEditLid">
+    <div class="field">
+      <label>Nombre de Ramal</label>
+      <input type="text" id="ramalNombreM" placeholder="Ej: Ramal A — Centro">
+    </div>
+    <div class="field">
+      <label>Recorrido (JSON de coordenadas)</label>
+      <div class="coords-info">
+        <strong>Formato esperado:</strong> [[-65.204,-26.833], [-65.205,-26.834], ...]<br>
+        <span id="coordCountM" class="coords-count">Sin coordenadas</span>
+      </div>
+      <textarea id="ramalCoordsM" placeholder='[[-65.2049826,-26.8337339],[-65.2049981,-26.8337397]]' oninput="previewCoordsM()" rows="5"></textarea>
+      <div class="preview-map" id="previewMapM"><canvas id="routeCanvasM"></canvas></div>
+    </div>
+    <div class="field" style="max-width: 100%; overflow-x: auto; margin-top: 1rem;">
+      <label>Grilla de Horarios (Formato 24hs)</label>
+      <div style="display:flex; gap: 8px; margin-bottom: 8px;" id="grillaControls">
+        <button type="button" class="btn-sm primary" onclick="addGridRow()">+ Añadir Lugar (Fila)</button>
+        <button type="button" class="btn-sm primary" onclick="addGridCol()">+ Añadir Bus (Columna)</button>
+      </div>
+      <table class="grilla-table" id="grillaTable">
+        <thead>
+          <tr id="grillaHead"></tr>
+        </thead>
+        <tbody id="grillaBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('ramal')">Cancelar</button>
+      <button class="submit-btn" onclick="guardarRamal()">GUARDAR RAMAL</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: INTERNO ─── -->
+<div class="modal-bg" id="modalInterno">
+  <div class="modal">
+    <h3 id="modalInternoTitle">➕ NUEVO INTERNO</h3>
+    <input type="hidden" id="intEditId">
+    <input type="hidden" id="intEditEid">
+    <input type="hidden" id="intEditLid">
+    <div class="form-row">
+      <div class="field">
+        <label>Número de Interno</label>
+        <input type="text" id="intNumero" placeholder="Ej: 47">
+      </div>
+      <div class="field">
+        <label>ID del Interno (para chofer)</label>
+        <input type="text" id="intId" placeholder="Ej: EMP-047">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>IMEI del Rastreador</label>
+        <input type="text" id="intImei" placeholder="15 dígitos IMEI">
+      </div>
+      <div class="field">
+        <label>Carrocería</label>
+        <input type="text" id="intCarroceria" placeholder="Ej: Mercedes OF-1722">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('interno')">Cancelar</button>
+      <button class="submit-btn" onclick="guardarInterno()">GUARDAR INTERNO</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: CONFIRMACIÓN ─── -->
+<div class="modal-bg" id="modalConfirm">
+  <div class="modal warn-modal">
+    <h3>⚠ CONFIRMAR ACCIÓN</h3>
+    <p id="confirmMsg" style="font-size:.9rem;color:var(--text);line-height:1.6"></p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('confirm')">Cancelar</button>
+      <button class="btn-danger" id="confirmOkBtn">ELIMINAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: CHÓFER ─── -->
+<div class="modal-bg" id="modalChofer">
+  <div class="modal">
+    <h3 id="modalChoferTitle">➕ NUEVO CHÓFER</h3>
+    <input type="hidden" id="choferEditId">
+    <input type="hidden" id="choferEditEid">
+    <div class="field">
+      <label>Nombre del Chófer</label>
+      <input type="text" id="choferNombre" placeholder="Ej: Juan Pérez">
+    </div>
+    <div class="field">
+      <label>DNI</label>
+      <input type="number" id="choferDni" placeholder="Ej: 12345678">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('chofer')">Cancelar</button>
+      <button class="submit-btn" onclick="guardarChofer()">GUARDAR CHÓFER</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: SUPERVISOR ─── -->
+<div class="modal-bg" id="modalSupervisor">
+  <div class="modal">
+    <h3 id="modalSupervisorTitle">➕ NUEVO SUPERVISOR</h3>
+    <input type="hidden" id="supervisorEditId">
+    <input type="hidden" id="supervisorEditEid">
+    <div class="field">
+      <label>Nombre del Supervisor</label>
+      <input type="text" id="supervisorNombre" placeholder="Ej: María Gómez">
+    </div>
+    <div class="field">
+      <label>DNI</label>
+      <input type="number" id="supervisorDni" placeholder="Ej: 87654321">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('supervisor')">Cancelar</button>
+      <button class="submit-btn" onclick="guardarSupervisor()">GUARDAR SUPERVISOR</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDkwkVn3j-FAAPLGqh0frlWnNozU1fiLVY",
+  authDomain: "colectucus.firebaseapp.com",
+  databaseURL: "https://colectucus-default-rtdb.firebaseio.com",
+  projectId: "colectucus",
+  storageBucket: "colectucus.firebasestorage.app",
+  messagingSenderId: "686986656402",
+  appId: "1:686986656402:web:0d22ac7a8e99f3aea5844b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ESTADO GLOBAL + AUTENTICACIÓN
+let state = { 
+  superadminKey: null,
+  empresas: {}, 
+  selectedEmpresaId: null, 
+  selectedLineaId: null,
+  dbLoaded: false,
+  auth: {
+    role: null,
+    eid: null, 
+    alias: '',
+    perms: {} 
+  },
+  tempCreds: {} 
+};
+
+// ── CONEXIÓN ──────────────────────────────────────────────────────
+onValue(ref(db, '.info/connected'), snap => {
+  const ok = snap.val();
+  document.getElementById('dbDot').className    = 'dot ' + (ok ? 'ok' : 'err');
+  document.getElementById('dbLabel').textContent = ok ? 'Conectado' : 'Desconectado';
+});
+
+// ── ESCUCHAR DATOS DE FIREBASE ────────────────────────────────────
+onValue(ref(db, 'empresas'), snap => {
+  state.empresas = snap.val() || {};
+  state.dbLoaded = true;
+  if (state.auth.role) {
+    renderSidebar();
+    if (state.selectedEmpresaId) {
+      if (state.selectedLineaId) renderLineaView(state.selectedEmpresaId, state.selectedLineaId);
+      else renderEmpresaView(state.selectedEmpresaId);
+    }
+  }
+});
+
+// ESCUCHAR LLAVE DE SUPERADMIN
+onValue(ref(db, 'config/superadminKey'), snap => {
+  state.superadminKey = snap.val();
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  MOBILE MENU
+// ══════════════════════════════════════════════════════════════════
+window.toggleMobileMenu = function() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeMobileMenuIfOpen() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  SISTEMA DE LOGIN Y PERMISOS (2 PASOS)
+// ══════════════════════════════════════════════════════════════════
+let loginTempEid = null;
+
+window.checkLoginId = function() {
+  if (!state.dbLoaded) return showLoginError("Conectando con la base de datos...");
+  const inputId = document.getElementById('loginId').value.trim();
+  if(!inputId) return showLoginError("Ingresa un ID válido.");
+
+  if (state.superadminKey && inputId === state.superadminKey) {
+    state.auth = { role: 'superadmin', eid: null, alias: 'Superadmin', perms: {} };
+    concederAcceso();
+    return;
+  }
+
+  let empresaEncontradaId = null;
+  let empresaObj = null;
+  for (const [key, emp] of Object.entries(state.empresas)) {
+    if (key === inputId || emp.codigo === inputId) {
+      empresaEncontradaId = key;
+      empresaObj = emp;
+      break;
+    }
+  }
+
+  if (!empresaEncontradaId) {
+    showLoginError("No se encontró ninguna empresa con ese ID.");
+    return;
+  }
+
+  loginTempEid = empresaEncontradaId;
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginStep1').style.display = 'none';
+  document.getElementById('loginStep2').style.display = 'block';
+  document.getElementById('empresaGreeting').style.display = 'flex';
+  document.getElementById('loginCompanyName').textContent = empresaObj.nombre;
+}
+
+window.resetLogin = function() {
+  loginTempEid = null;
+  document.getElementById('loginStep2').style.display = 'none';
+  document.getElementById('empresaGreeting').style.display = 'none';
+  document.getElementById('loginStep1').style.display = 'block';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+window.doLogin = function() {
+  const inputPass = document.getElementById('loginPass').value.trim();
+  const empresaObj = state.empresas[loginTempEid];
+
+  let credencialValida = null;
+  if (empresaObj && empresaObj.credenciales) {
+    credencialValida = Object.values(empresaObj.credenciales).find(c => c.password === inputPass);
+  }
+
+  if (credencialValida) {
+    state.auth = {
+      role: 'company',
+      eid: loginTempEid,
+      alias: credencialValida.apodo || 'Operador',
+      perms: credencialValida.permisos || {}
+    };
+    concederAcceso();
+    state.selectedEmpresaId = loginTempEid;
+  } else {
+    showLoginError("Contraseña incorrecta.");
+  }
+}
+
+function showLoginError(msg) {
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = msg;
+  errEl.style.display = 'block';
+}
+
+function concederAcceso() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('authInfo').style.display = 'flex';
+  const badge = document.getElementById('userBadge');
+  badge.textContent = state.auth.role === 'superadmin' ? 'Superadmin' : state.auth.alias;
+  badge.style.color = state.auth.role === 'superadmin' ? 'var(--danger)' : 'var(--accent)';
+  document.getElementById('btnSidebarAddEmpresa').style.display = state.auth.role === 'superadmin' ? 'block' : 'none';
+  renderSidebar();
+  if (state.auth.role === 'company') renderEmpresaView(state.auth.eid);
+}
+
+window.doLogout = function() {
+  state.auth = { role: null, eid: null, alias: '', perms: {} };
+  state.selectedEmpresaId = null; state.selectedLineaId = null;
+  resetLogin();
+  document.getElementById('loginId').value = '';
+  document.getElementById('authInfo').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('mainContent').innerHTML = `<div class="placeholder-msg"><div class="icon">🚌</div><p>Seleccioná una empresa del panel izquierdo.</p></div>`;
+  document.getElementById('empresasList').innerHTML = '';
+}
+
+function can(action) {
+  if (state.auth.role === 'superadmin') return true;
+  if (state.auth.role === 'company' && state.auth.perms[action]) return true;
+  return false;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  SIDEBAR
+// ══════════════════════════════════════════════════════════════════
+window.renderSidebar = function() {
+  const el = document.getElementById('empresasList');
+  let eids = Object.keys(state.empresas);
+  if (state.auth.role === 'company') eids = eids.filter(id => id === state.auth.eid);
+  if (!eids.length) { el.innerHTML = '<div class="empty"><small>Sin empresas</small></div>'; return; }
+  
+  const canEditEmpName = can('empName');
+  const canEditEmpId = can('empId');
+  const canLinAdd = can('linAdd');
+  const canLinDel = can('linDel');
+  const canLinEditAny = can('linType') || can('linName') || can('linDest');
+
+  el.innerHTML = eids.map(eid => {
+    const emp = state.empresas[eid];
+    const lineas = emp.lineas || {};
+    const lids = Object.keys(lineas);
+    const isOpen = state.selectedEmpresaId === eid;
+    
+    return `
+    <div class="empresa-item ${isOpen ? 'open active' : ''}">
+      <div class="empresa-header" onclick="selectEmpresa('${eid}')">
+        <span class="empresa-name">${emp.nombre}</span>
+        ${(canEditEmpName || canEditEmpId) ? `<button class="icon-btn edit" title="Editar empresa" onclick="event.stopPropagation();abrirEditEmpresa('${eid}')">✏</button>` : ''}
+        ${state.auth.role === 'superadmin' ? `<button class="icon-btn del" title="Eliminar empresa" onclick="event.stopPropagation();confirmar('¿Eliminar la empresa <strong>${emp.nombre}</strong>?', ()=>eliminarEmpresa('${eid}'))">🗑</button>` : ''}
+        <span class="empresa-arrow">▶</span>
+      </div>
+      <div class="lineas-list">
+        ${lids.length ? lids.map(lid => {
+          const l = lineas[lid]; const tc = l.tipo ? l.tipo[0] : 'U';
+          return `<div class="linea-item ${state.selectedLineaId === lid ? 'active' : ''}">
+            <span class="tipo-badge ${tc}" onclick="selectLinea('${eid}','${lid}')">${tc}</span>
+            <span class="linea-item-name" onclick="selectLinea('${eid}','${lid}')">${l.nombre}</span>
+            ${canLinEditAny ? `<button class="icon-btn edit" onclick="abrirEditLinea('${eid}','${lid}')">✏</button>` : ''}
+            ${canLinDel ? `<button class="icon-btn del" onclick="confirmar('¿Eliminar línea?', ()=>eliminarLinea('${eid}','${lid}'))">🗑</button>` : ''}
+          </div>`;
+        }).join('') : '<div style="padding:.4rem .75rem;font-size:.75rem;color:var(--muted)">Sin líneas</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.selectEmpresa = function(eid) { state.selectedEmpresaId = eid; state.selectedLineaId = null; renderSidebar(); renderEmpresaView(eid); closeMobileMenuIfOpen(); }
+window.selectLinea = function(eid, lid) { state.selectedEmpresaId = eid; state.selectedLineaId = lid; renderSidebar(); renderLineaView(eid, lid); closeMobileMenuIfOpen(); }
+
+// ══════════════════════════════════════════════════════════════════
+//  VISTA EMPRESA (CON PESTAÑAS LÍNEAS / CHÓFERES / SUPERVISORES)
+// ══════════════════════════════════════════════════════════════════
+window.renderEmpresaView = function(eid) {
+  const emp = state.empresas[eid]; if (!emp) return;
+  const lineas = emp.lineas || {}; const lids = Object.keys(lineas);
+  const choferes = emp.choferes || {}; const cids = Object.keys(choferes);
+  const supervisores = emp.supervisores || {}; const sids = Object.keys(supervisores);
+  
+  const canLinEditAny = can('linType') || can('linName') || can('linDest');
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="breadcrumb"><span class="crumb">${emp.nombre}</span> <span class="sep" style="margin-left:10px">|</span> <span class="sep" style="font-size:0.65rem; color:var(--muted)">ID Sistema: ${eid}</span></div>
+    <div class="section-title">${emp.nombre}</div>
+    
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('lineas-emp',this)">Líneas (${lids.length})</button>
+      <button class="tab-btn"        onclick="switchTab('choferes-emp',this)">Chóferes (${cids.length})</button>
+      <button class="tab-btn"        onclick="switchTab('supervisores-emp',this)">Supervisores (${sids.length})</button>
+    </div>
+
+    <div class="tab-content active" id="tab-lineas-emp">
+      ${can('linAdd') ? `<button class="submit-btn" style="margin-bottom:1.5rem" onclick="openModal('linea');document.getElementById('lineaEditId').value='';">+ NUEVA LÍNEA</button>` : ''}
+      <div class="cards-grid">
+        ${lids.length ? lids.map(lid => {
+          const l = lineas[lid]; const tc = l.tipo ? l.tipo[0] : 'U';
+          return `<div class="card">
+            <div class="card-id">ID: ${lid}</div>
+            <div class="card-title"><span class="tipo-badge ${tc}" style="margin-right:6px">${l.tipo}</span>${l.nombre}</div>
+            <div class="card-sub">${l.destino || ''}</div>
+            <div class="card-actions">
+              <button class="btn-sm primary" onclick="selectLinea('${eid}','${lid}')">Gestionar</button>
+              ${canLinEditAny ? `<button class="btn-sm edit" onclick="abrirEditLinea('${eid}','${lid}')">Editar</button>` : ''}
+              ${can('linDel') ? `<button class="btn-sm danger" onclick="confirmar('¿Eliminar línea?', ()=>eliminarLinea('${eid}','${lid}'))">Eliminar</button>` : ''}
+            </div>
+          </div>`;
+        }).join('') : `<div class="empty"><span class="big">🚌</span>Sin líneas aún</div>`}
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-choferes-emp">
+      ${can('chofAdd') || state.auth.role === 'superadmin' ? `<button class="submit-btn" style="margin-bottom:1.5rem" onclick="abrirNuevoChofer('${eid}')">+ NUEVO CHÓFER</button>` : ''}
+      <div class="cards-grid">
+        ${cids.length ? cids.map(cid => {
+          const c = choferes[cid];
+          return `<div class="card">
+            <div class="card-id">ID: ${cid}</div>
+            <div class="card-title">👨‍✈️ ${c.nombre}</div>
+            <div class="card-sub">DNI: ${c.dni}</div>
+            <div class="card-actions">
+              ${can('chofEdit') || state.auth.role === 'superadmin' ? `<button class="btn-sm edit" onclick="abrirEditChofer('${eid}','${cid}')">Editar</button>` : ''}
+              ${can('chofDel') || state.auth.role === 'superadmin' ? `<button class="btn-sm danger" onclick="confirmar('¿Eliminar chófer <strong>${c.nombre}</strong>?', ()=>eliminarChofer('${eid}','${cid}'))">Eliminar</button>` : ''}
+            </div>
+          </div>`;
+        }).join('') : `<div class="empty"><span class="big">👨‍✈️</span>Sin chóferes registrados</div>`}
+      </div>
+    </div>
+
+    <!-- PESTAÑA SUPERVISORES -->
+    <div class="tab-content" id="tab-supervisores-emp">
+      ${can('supAdd') || state.auth.role === 'superadmin' ? `<button class="submit-btn" style="margin-bottom:1.5rem" onclick="abrirNuevoSupervisor('${eid}')">+ NUEVO SUPERVISOR</button>` : ''}
+      <div class="cards-grid">
+        ${sids.length ? sids.map(sid => {
+          const s = supervisores[sid];
+          return `<div class="card">
+            <div class="card-id">ID: ${sid}</div>
+            <div class="card-title">📋 ${s.nombre}</div>
+            <div class="card-sub">DNI: ${s.dni}</div>
+            <div class="card-actions">
+              ${can('supEdit') || state.auth.role === 'superadmin' ? `<button class="btn-sm edit" onclick="abrirEditSupervisor('${eid}','${sid}')">Editar</button>` : ''}
+              ${can('supDel') || state.auth.role === 'superadmin' ? `<button class="btn-sm danger" onclick="confirmar('¿Eliminar supervisor <strong>${s.nombre}</strong>?', ()=>eliminarSupervisor('${eid}','${sid}'))">Eliminar</button>` : ''}
+            </div>
+          </div>`;
+        }).join('') : `<div class="empty"><span class="big">📋</span>Sin supervisores registrados</div>`}
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  VISTA LÍNEA
+// ══════════════════════════════════════════════════════════════════
+window.renderLineaView = function(eid, lid) {
+  const emp = state.empresas[eid];
+  if (!emp || !emp.lineas || !emp.lineas[lid]) { renderEmpresaView(eid); return; }
+  const linea = emp.lineas[lid];
+  const ramales = linea.ramales || {}; const internos = linea.internos || {};
+
+  const canRamEditAny = can('ramName') || can('ramRec');
+  const canIntEditAny = can('intNum') || can('intId') || can('intImei') || can('intCar');
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="breadcrumb">
+      <span class="link" onclick="selectEmpresa('${eid}')">${emp.nombre}</span>
+      <span class="sep">›</span><span class="crumb">${linea.nombre}</span>
+    </div>
+    <div class="section-title">${linea.nombre}</div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('ramales',this)">Ramales (${Object.keys(ramales).length})</button>
+      <button class="tab-btn"        onclick="switchTab('internos',this)">Internos (${Object.keys(internos).length})</button>
+    </div>
+
+    <div class="tab-content active" id="tab-ramales">
+      ${can('ramAdd') ? `<button class="submit-btn" style="margin-bottom:1.5rem" onclick="abrirNuevoRamal('${eid}','${lid}')">+ NUEVO RAMAL</button>` : ''}
+      <div class="cards-grid">
+        ${Object.keys(ramales).length ? Object.entries(ramales).map(([rid,r]) => `
+          <div class="card">
+            <div class="card-id">ID: ${rid}</div>
+            <div class="card-title">${r.nombre}</div>
+            <div class="card-sub">${(r.recorrido||[]).length} puntos de recorrido</div>
+            <div class="card-actions">
+              ${canRamEditAny ? `<button class="btn-sm edit" onclick="abrirEditRamal('${eid}','${lid}','${rid}')">Editar</button>` : ''}
+              ${can('ramDel') ? `<button class="btn-sm danger" onclick="confirmar('¿Eliminar ramal?', ()=>eliminarRamal('${eid}','${lid}','${rid}'))">Eliminar</button>` : ''}
+            </div>
+          </div>`).join('') : `<div class="empty"><span class="big">🗺️</span>Sin ramales</div>`}
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-internos">
+      ${can('intAdd') ? `<button class="submit-btn" style="margin-bottom:1.5rem" onclick="abrirNuevoInterno('${eid}','${lid}')">+ NUEVO INTERNO</button>` : ''}
+      <div class="cards-grid">
+        ${Object.keys(internos).length ? Object.entries(internos).map(([iid,i]) => `
+          <div class="card">
+            <div class="card-id">ID sistema: ${iid}</div>
+            <div class="card-title">Interno Nº ${i.numero}</div>
+            <div class="card-sub">ID chofer: <strong style="color:var(--accent)">${i.idInterno}</strong></div>
+            <div class="card-sub">IMEI: ${i.imei}</div>
+            <div class="card-actions">
+              ${canIntEditAny ? `<button class="btn-sm edit" onclick="abrirEditInterno('${eid}','${lid}','${iid}')">Editar</button>` : ''}
+              ${can('intDel') ? `<button class="btn-sm danger" onclick="confirmar('¿Eliminar interno?', ()=>eliminarInterno('${eid}','${lid}','${iid}'))">Eliminar</button>` : ''}
+            </div>
+          </div>`).join('') : `<div class="empty"><span class="big">🚍</span>Sin internos</div>`}
+      </div>
+    </div>
+  `;
+}
+
+window.switchTab = function(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  MODALES Y LOGICA DE PERMISOS UI
+// ══════════════════════════════════════════════════════════════════
+window.openModal = function(type) { document.getElementById('modal'+type.charAt(0).toUpperCase()+type.slice(1)).classList.add('open'); }
+window.closeModal = function(type) { document.getElementById('modal'+type.charAt(0).toUpperCase()+type.slice(1)).classList.remove('open'); }
+
+// --- EMPRESAS ---
+window.abrirEditEmpresa = function(eid) {
+  const emp = state.empresas[eid];
+  document.getElementById('modalEmpresaTitle').textContent = '✏ EDITAR EMPRESA';
+  document.getElementById('empEditId').value = eid;
+  
+  const inNom = document.getElementById('empNombre');
+  const inId = document.getElementById('empCodigo');
+  inNom.value = emp.nombre;
+  inId.value = emp.codigo;
+
+  inNom.disabled = !can('empName');
+  inId.disabled = !can('empId');
+
+  if (state.auth.role === 'superadmin') {
+    document.getElementById('adminCredsSection').style.display = 'block';
+    state.tempCreds = JSON.parse(JSON.stringify(emp.credenciales || {}));
+    renderCredsList();
+  } else {
+    document.getElementById('adminCredsSection').style.display = 'none';
+  }
+  openModal('empresa');
+}
+
+document.querySelector('.add-empresa-btn').addEventListener('click', () => {
+  document.getElementById('modalEmpresaTitle').textContent = '➕ NUEVA EMPRESA';
+  document.getElementById('empEditId').value = '';
+  document.getElementById('empNombre').value = ''; document.getElementById('empNombre').disabled = false;
+  document.getElementById('empCodigo').value = ''; document.getElementById('empCodigo').disabled = false;
+  state.tempCreds = {};
+  if (state.auth.role === 'superadmin') {
+    document.getElementById('adminCredsSection').style.display = 'block';
+    renderCredsList();
+  }
+});
+
+// --- GESTION DE APODOS (CREDENCIALES) ---
+window.renderCredsList = function() {
+  const cList = document.getElementById('credListRender');
+  const keys = Object.keys(state.tempCreds);
+  if(!keys.length) { cList.innerHTML = '<div class="empty" style="padding:1rem;">Sin apodos.</div>'; return; }
+  
+  cList.innerHTML = keys.map(k => {
+    const c = state.tempCreds[k];
+    return `
+    <div class="cred-list-item">
+      <div class="cred-info">
+        <span class="cred-apodo">${c.apodo}</span>
+        <span class="cred-pass">🔑 ${c.password}</span>
+      </div>
+      <div style="display:flex; gap:5px;">
+        <button class="btn-sm edit" onclick="abrirEditarCredencial('${k}')">Editar</button>
+        <button class="btn-sm danger" onclick="eliminarCredencialTemp('${k}')">Borrar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.abrirNuevaCredencial = function() {
+  document.getElementById('modalCredTitle').textContent = '➕ NUEVO APODO';
+  document.getElementById('credEditId').value = '';
+  document.getElementById('credApodo').value = '';
+  document.getElementById('credPass').value = '';
+  document.querySelectorAll('#permGridGranular input[type="checkbox"]').forEach(chk => chk.checked = false);
+  openModal('credencial');
+}
+
+window.abrirEditarCredencial = function(k) {
+  const c = state.tempCreds[k];
+  document.getElementById('modalCredTitle').textContent = '✏ EDITAR APODO';
+  document.getElementById('credEditId').value = k;
+  document.getElementById('credApodo').value = c.apodo;
+  document.getElementById('credPass').value = c.password;
+  
+  const p = c.permisos || {};
+  document.querySelectorAll('#permGridGranular input[type="checkbox"]').forEach(chk => {
+    const pName = chk.id.replace('p_', '');
+    chk.checked = !!p[pName];
+  });
+  openModal('credencial');
+}
+
+window.guardarCredencialTemp = function() {
+  const editId = document.getElementById('credEditId').value;
+  const apodo = document.getElementById('credApodo').value.trim();
+  const password = document.getElementById('credPass').value.trim();
+  if(!apodo || !password) return toast('Completa apodo y contraseña', 'error');
+
+  const permisos = {};
+  document.querySelectorAll('#permGridGranular input[type="checkbox"]').forEach(chk => {
+    permisos[chk.id.replace('p_', '')] = chk.checked;
+  });
+
+  const k = editId || ('c_' + Date.now());
+  state.tempCreds[k] = { apodo, password, permisos };
+  
+  renderCredsList();
+  closeModal('credencial');
+}
+
+window.eliminarCredencialTemp = function(k) {
+  delete state.tempCreds[k];
+  renderCredsList();
+}
+
+// --- LINEAS ---
+window.abrirEditLinea = function(eid, lid) {
+  const l = state.empresas[eid].lineas[lid];
+  document.getElementById('modalLineaTitle').textContent = '✏ EDITAR LÍNEA';
+  document.getElementById('lineaEditId').value = lid;
+  
+  const iTip = document.getElementById('lineaTipo');
+  const iNom = document.getElementById('lineaNombre');
+  const iDes = document.getElementById('lineaDestino');
+  
+  iTip.value = l.tipo;  iTip.disabled = !can('linType');
+  iNom.value = l.nombre; iNom.disabled = !can('linName');
+  iDes.value = l.destino||''; iDes.disabled = !can('linDest');
+  openModal('linea');
+}
+
+// --- RAMALES ---
+window.abrirNuevoRamal = function(eid, lid) {
+  document.getElementById('modalRamalTitle').textContent = '➕ NUEVO RAMAL';
+  document.getElementById('ramalEditId').value = '';
+  document.getElementById('ramalEditEid').value = eid; document.getElementById('ramalEditLid').value = lid;
+  
+  const iNom = document.getElementById('ramalNombreM'); iNom.value = ''; iNom.disabled = false;
+  const iRec = document.getElementById('ramalCoordsM'); iRec.value = ''; iRec.disabled = false;
+  
+  document.getElementById('coordCountM').textContent = 'Sin coordenadas';
+  document.getElementById('previewMapM').style.display = 'none';
+  
+  loadGrillaData(null); 
+  openModal('ramal');
+}
+window.abrirEditRamal = function(eid, lid, rid) {
+  const r = state.empresas[eid].lineas[lid].ramales[rid];
+  document.getElementById('modalRamalTitle').textContent = '✏ EDITAR RAMAL';
+  document.getElementById('ramalEditId').value = rid;
+  document.getElementById('ramalEditEid').value = eid; document.getElementById('ramalEditLid').value = lid;
+  
+  const iNom = document.getElementById('ramalNombreM'); iNom.value = r.nombre; iNom.disabled = !can('ramName');
+  const coords = r.recorrido || [];
+  const iRec = document.getElementById('ramalCoordsM'); iRec.value = JSON.stringify(coords); iRec.disabled = !can('ramRec');
+  
+  document.getElementById('coordCountM').textContent = `✓ ${coords.length} puntos`;
+  const mapEl = document.getElementById('previewMapM');
+  if (coords.length) { mapEl.style.display = 'block'; setTimeout(() => drawRoute(coords, mapEl), 50); }
+  
+  loadGrillaData(r.grilla || null); 
+  openModal('ramal');
+}
+
+// --- INTERNOS ---
+window.abrirNuevoInterno = function(eid, lid) {
+  document.getElementById('modalInternoTitle').textContent = '➕ NUEVO INTERNO';
+  document.getElementById('intEditId').value = '';
+  document.getElementById('intEditEid').value = eid; document.getElementById('intEditLid').value = lid;
+  
+  const fields = ['intNumero','intId','intImei','intCarroceria'];
+  fields.forEach(f => { let el = document.getElementById(f); el.value = ''; el.disabled = false; });
+  openModal('interno');
+}
+
+window.abrirEditInterno = function(eid, lid, iid) {
+  const i = state.empresas[eid].lineas[lid].internos[iid];
+  document.getElementById('modalInternoTitle').textContent = '✏ EDITAR INTERNO';
+  document.getElementById('intEditId').value = iid;
+  document.getElementById('intEditEid').value = eid; document.getElementById('intEditLid').value = lid;
+  
+  const iNum = document.getElementById('intNumero'); iNum.value = i.numero; iNum.disabled = !can('intNum');
+  const iId = document.getElementById('intId'); iId.value = i.idInterno; iId.disabled = !can('intId');
+  const iImei = document.getElementById('intImei'); iImei.value = i.imei; iImei.disabled = !can('intImei');
+  const iCar = document.getElementById('intCarroceria'); iCar.value = i.carroceria; iCar.disabled = !can('intCar');
+  openModal('interno');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  LOGICA DE GRILLA DE HORARIOS
+// ══════════════════════════════════════════════════════════════════
+let grillaCols = 2; 
+window.diasSemana = ['L','M','X','J','V','S','D','Feriado'];
+
+window.renderGrillaHeader = function() {
+  const tr = document.getElementById('grillaHead');
+  let html = `<th>Lugar</th>`;
+  for(let i=1; i<=grillaCols; i++) {
+    html += `<th>Bus ${i} ${can('ramGridDel') ? `<button type="button" class="btn-del-grid" onclick="removeGridCol(${i})" style="margin-left:4px;" title="Borrar columna de bus">X</button>` : ''}</th>`;
+  }
+  html += `<th>Días de la semana</th>`;
+  if (can('ramGridDel')) html += `<th>Acción</th>`;
+  tr.innerHTML = html;
+}
+
+window.addGridRow = function(data = null) {
+  const tbody = document.getElementById('grillaBody');
+  const tr = document.createElement('tr');
+  const isDisabled = !can('ramGridEdit') ? 'disabled' : '';
+  
+  let html = `<td><input type="text" class="g-lugar" placeholder="Ej: Terminal" value="${data ? data.lugar : ''}" ${isDisabled}></td>`;
+  
+  for(let i=0; i<grillaCols; i++) {
+    let timeVal = data && data.horarios && data.horarios[i] ? data.horarios[i] : '';
+    html += `<td><input type="time" class="g-time" value="${timeVal}" ${isDisabled} required></td>`;
+  }
+  
+  html += `<td><div class="dias-checkboxes">`;
+  window.diasSemana.forEach(d => {
+    let isChecked = data && data.dias && data.dias.includes(d) ? 'checked' : '';
+    html += `<label><input type="checkbox" class="g-dia" value="${d}" ${isChecked} ${isDisabled}> ${d}</label>`;
+  });
+  html += `</div></td>`;
+  
+  if (can('ramGridDel')) {
+    html += `<td><button type="button" class="btn-del-grid" onclick="this.closest('tr').remove()">X</button></td>`;
+  }
+  tr.innerHTML = html;
+  tbody.appendChild(tr);
+}
+
+window.addGridCol = function() {
+  grillaCols++;
+  renderGrillaHeader();
+  const rows = document.getElementById('grillaBody').querySelectorAll('tr');
+  rows.forEach(row => {
+    const td = document.createElement('td');
+    td.innerHTML = `<input type="time" class="g-time" ${!can('ramGridEdit') ? 'disabled' : ''} required>`;
+    const insertBeforeIdx = can('ramGridDel') ? row.children.length - 2 : row.children.length - 1;
+    row.insertBefore(td, row.children[insertBeforeIdx]);
+  });
+}
+
+window.removeGridCol = function(index) {
+  if(grillaCols <= 1) return toast('Debe haber al menos un bus (columna)', 'error');
+  const currentData = extractGrillaData();
+  currentData.forEach(row => row.horarios.splice(index - 1, 1));
+  grillaCols--;
+  loadGrillaData(currentData);
+}
+
+window.extractGrillaData = function() {
+  const rows = document.getElementById('grillaBody').querySelectorAll('tr');
+  const data = [];
+  rows.forEach(row => {
+    const lugar = row.querySelector('.g-lugar').value.trim();
+    const horarios = Array.from(row.querySelectorAll('.g-time')).map(inp => inp.value);
+    const dias = Array.from(row.querySelectorAll('.g-dia:checked')).map(chk => chk.value);
+    if (lugar || horarios.some(h => h !== '')) {
+      data.push({ lugar, horarios, dias });
+    }
+  });
+  return data;
+}
+
+window.loadGrillaData = function(dataArr) {
+  const tbody = document.getElementById('grillaBody');
+  tbody.innerHTML = '';
+  document.getElementById('grillaControls').style.display = can('ramGridAdd') ? 'flex' : 'none';
+  
+  if (dataArr && dataArr.length > 0) {
+    grillaCols = Math.max(...dataArr.map(d => (d.horarios ? d.horarios.length : 1)));
+    renderGrillaHeader();
+    dataArr.forEach(d => addGridRow(d));
+  } else {
+    grillaCols = 2; 
+    renderGrillaHeader();
+    if(can('ramGridAdd')) { addGridRow(); addGridRow(); addGridRow(); }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  GUARDAR DATOS EN FIREBASE
+// ══════════════════════════════════════════════════════════════════
+window.guardarEmpresa = async function() {
+  const editId = document.getElementById('empEditId').value;
+  const nombre = document.getElementById('empNombre').value.trim();
+  const codigo = document.getElementById('empCodigo').value.trim();
+  if (!nombre || !codigo) return toast('Completá todos los campos', 'error');
+
+  try {
+    if (editId) {
+      const updates = {};
+      if(can('empName')) updates.nombre = nombre;
+      if(can('empId')) updates.codigo = codigo;
+      if (state.auth.role === 'superadmin') updates.credenciales = state.tempCreds;
+      if(Object.keys(updates).length) await update(ref(db, `empresas/${editId}`), updates);
+      toast(`Empresa actualizada`);
+    } else {
+      if(!can('empName') && state.auth.role !== 'superadmin') return;
+      const nr = push(ref(db, 'empresas'));
+      await set(nr, { nombre, codigo, credenciales: state.tempCreds, creadoEn: Date.now() });
+      toast(`Empresa creada`);
+    }
+    closeModal('empresa');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+window.guardarLinea = async function() {
+  const eid = state.selectedEmpresaId;
+  const editId = document.getElementById('lineaEditId').value;
+  const tipo = document.getElementById('lineaTipo').value;
+  const nombre = document.getElementById('lineaNombre').value.trim();
+  const destino= document.getElementById('lineaDestino').value.trim();
+  if (!nombre || !destino) return toast('Completá todos los campos', 'error');
+  try {
+    if (editId) {
+      const updates = {};
+      if(can('linType')) updates.tipo = tipo;
+      if(can('linName')) updates.nombre = nombre;
+      if(can('linDest')) updates.destino = destino;
+      if(Object.keys(updates).length) await update(ref(db, `empresas/${eid}/lineas/${editId}`), updates);
+      toast(`Línea actualizada`);
+    } else {
+      if(!can('linAdd')) return;
+      const nr = push(ref(db, `empresas/${eid}/lineas`));
+      await set(nr, { tipo, nombre, destino, creadoEn: Date.now() });
+      toast(`Línea creada`);
+    }
+    closeModal('linea');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+window.guardarRamal = async function() {
+  const eid = document.getElementById('ramalEditEid').value;
+  const lid = document.getElementById('ramalEditLid').value;
+  const editId = document.getElementById('ramalEditId').value;
+  const nombre = document.getElementById('ramalNombreM').value.trim();
+  const rawCrd = document.getElementById('ramalCoordsM').value.trim();
+  if (!nombre) return toast('Ingresá el nombre', 'error');
+  
+  let recorrido = [];
+  if (rawCrd) { try { recorrido = JSON.parse(rawCrd); } catch { return toast('JSON inválido', 'error'); } }
+  
+  const grilla = extractGrillaData(); 
+
+  try {
+    if (editId) {
+      const updates = {};
+      if(can('ramName')) updates.nombre = nombre;
+      if(can('ramRec')) updates.recorrido = recorrido;
+      if(can('ramGridEdit') || can('ramGridAdd') || can('ramGridDel')) updates.grilla = grilla;
+      
+      if(Object.keys(updates).length) await update(ref(db, `empresas/${eid}/lineas/${lid}/ramales/${editId}`), updates);
+      toast(`Ramal actualizado`);
+    } else {
+      if(!can('ramAdd')) return;
+      const nr = push(ref(db, `empresas/${eid}/lineas/${lid}/ramales`));
+      await set(nr, { nombre, recorrido, grilla, creadoEn: Date.now() });
+      toast(`Ramal creado`);
+    }
+    closeModal('ramal'); selectLinea(eid, lid);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+window.guardarInterno = async function() {
+  const eid = document.getElementById('intEditEid').value;
+  const lid = document.getElementById('intEditLid').value;
+  const editId = document.getElementById('intEditId').value;
+  const numero = document.getElementById('intNumero').value.trim();
+  const imei = document.getElementById('intImei').value.trim();
+  const carroceria = document.getElementById('intCarroceria').value.trim();
+  const idInterno = document.getElementById('intId').value.trim();
+  if (!numero || !imei || !carroceria || !idInterno) return toast('Completá todos los campos', 'error');
+  try {
+    if (editId) {
+      const updates = {};
+      if(can('intNum')) updates.numero = numero;
+      if(can('intImei')) updates.imei = imei;
+      if(can('intCar')) updates.carroceria = carroceria;
+      if(can('intId')) updates.idInterno = idInterno;
+      if(Object.keys(updates).length) await update(ref(db, `empresas/${eid}/lineas/${lid}/internos/${editId}`), updates);
+      toast(`Interno actualizado`);
+    } else {
+      if(!can('intAdd')) return;
+      const nr = push(ref(db, `empresas/${eid}/lineas/${lid}/internos`));
+      await set(nr, { numero, imei, carroceria, idInterno, creadoEn: Date.now() });
+      toast(`Interno creado`);
+    }
+    closeModal('interno'); selectLinea(eid, lid);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// --- CHÓFERES ---
+window.guardarChofer = async function() {
+  const eid = document.getElementById('choferEditEid').value;
+  const editId = document.getElementById('choferEditId').value;
+  const nombre = document.getElementById('choferNombre').value.trim();
+  const dni = document.getElementById('choferDni').value.trim();
+
+  if (!nombre || !dni) return toast('Completá nombre y DNI', 'error');
+
+  try {
+    if (editId) {
+      if(!can('chofEdit') && state.auth.role !== 'superadmin') return toast('Sin permisos', 'error');
+      await update(ref(db, `empresas/${eid}/choferes/${editId}`), { nombre, dni });
+      toast(`Chófer actualizado`);
+    } else {
+      if(!can('chofAdd') && state.auth.role !== 'superadmin') return toast('Sin permisos', 'error');
+      const nr = push(ref(db, `empresas/${eid}/choferes`));
+      await set(nr, { nombre, dni, creadoEn: Date.now() });
+      toast(`Chófer creado`);
+    }
+    closeModal('chofer');
+    renderEmpresaView(eid); 
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+window.abrirNuevoChofer = function(eid) {
+  document.getElementById('modalChoferTitle').textContent = '➕ NUEVO CHÓFER';
+  document.getElementById('choferEditId').value = '';
+  document.getElementById('choferEditEid').value = eid;
+  document.getElementById('choferNombre').value = '';
+  document.getElementById('choferDni').value = '';
+  openModal('chofer');
+}
+
+window.abrirEditChofer = function(eid, cid) {
+  const c = state.empresas[eid].choferes[cid];
+  document.getElementById('modalChoferTitle').textContent = '✏ EDITAR CHÓFER';
+  document.getElementById('choferEditId').value = cid;
+  document.getElementById('choferEditEid').value = eid;
+  document.getElementById('choferNombre').value = c.nombre;
+  document.getElementById('choferDni').value = c.dni;
+  openModal('chofer');
+}
+
+window.eliminarChofer = async function(eid, cid) {
+  if (!can('chofDel') && state.auth.role !== 'superadmin') return toast('Sin permisos', 'error');
+  await remove(ref(db, `empresas/${eid}/choferes/${cid}`));
+  renderEmpresaView(eid);
+  toast('Chófer eliminado');
+}
+
+// --- SUPERVISORES ---
+window.abrirNuevoSupervisor = function(eid) {
+  document.getElementById('modalSupervisorTitle').textContent = '➕ NUEVO SUPERVISOR';
+  document.getElementById('supervisorEditId').value = '';
+  document.getElementById('supervisorEditEid').value = eid;
+  document.getElementById('supervisorNombre').value = '';
+  document.getElementById('supervisorDni').value = '';
+  openModal('supervisor');
+}
+
+window.abrirEditSupervisor = function(eid, sid) {
+  const s = state.empresas[eid].supervisores[sid];
+  document.getElementById('modalSupervisorTitle').textContent = '✏ EDITAR SUPERVISOR';
+  document.getElementById('supervisorEditId').value = sid;
+  document.getElementById('supervisorEditEid').value = eid;
+  document.getElementById('supervisorNombre').value = s.nombre;
+  document.getElementById('supervisorDni').value = s.dni;
+  openModal('supervisor');
+}
+
+window.guardarSupervisor = async function() {
+  const eid = document.getElementById('supervisorEditEid').value;
+  const editId = document.getElementById('supervisorEditId').value;
+  const nombre = document.getElementById('supervisorNombre').value.trim();
+  const dni = document.getElementById('supervisorDni').value.trim();
+
+  if (!nombre || !dni) return toast('Completá nombre y DNI', 'error');
+
+  try {
+    if (editId) {
+      if(!can('supEdit') && state.auth.role !== 'superadmin') return toast('Sin permisos', 'error');
+      await update(ref(db, `empresas/${eid}/supervisores/${editId}`), { nombre, dni });
+      toast(`Supervisor actualizado`);
+    } else {
+      if(!can('supAdd') && state.auth.role !== 'superadmin') return toast('Sin permisos', 'error');
+      const nr = push(ref(db, `empresas/${eid}/supervisores`));
+      await set(nr, { nombre, dni, creadoEn: Date.now() });
+      toast(`Supervisor creado`);
+    }
+    closeModal('supervisor');
+    renderEmpresaView(eid);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+window.eliminarSupervisor = async function(eid, sid) {
+  if (!can('supDel') && state.auth.role !== 'superadmin') return toast('Sin permisos', 'error');
+  await remove(ref(db, `empresas/${eid}/supervisores/${sid}`));
+  renderEmpresaView(eid);
+  toast('Supervisor eliminado');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  ELIMINAR
+// ══════════════════════════════════════════════════════════════════
+window.eliminarEmpresa = async function(eid) {
+  if (state.auth.role !== 'superadmin') return toast('Solo Superadmin', 'error');
+  await remove(ref(db, `empresas/${eid}`));
+  if (state.selectedEmpresaId === eid) { state.selectedEmpresaId = null; state.selectedLineaId = null; }
+  document.getElementById('mainContent').innerHTML = `<div class="placeholder-msg"><div class="icon">🚌</div><p>Seleccioná una empresa.</p></div>`;
+  toast('Empresa eliminada');
+}
+window.eliminarLinea = async function(eid, lid) {
+  if (!can('linDel')) return toast('Sin permisos', 'error');
+  await remove(ref(db, `empresas/${eid}/lineas/${lid}`));
+  if (state.selectedLineaId === lid) state.selectedLineaId = null;
+  selectEmpresa(eid); toast('Línea eliminada');
+}
+window.eliminarRamal = async function(eid, lid, rid) {
+  if (!can('ramDel')) return toast('Sin permisos', 'error');
+  await remove(ref(db, `empresas/${eid}/lineas/${lid}/ramales/${rid}`));
+  selectLinea(eid, lid); toast('Ramal eliminado');
+}
+window.eliminarInterno = async function(eid, lid, iid) {
+  if (!can('intDel')) return toast('Sin permisos', 'error');
+  await remove(ref(db, `empresas/${eid}/lineas/${lid}/internos/${iid}`));
+  selectLinea(eid, lid); toast('Interno eliminado');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  UTILS (Confirmar, Mapas, Toasts)
+// ══════════════════════════════════════════════════════════════════
+window.confirmar = function(msg, fn) {
+  document.getElementById('confirmMsg').innerHTML = msg;
+  document.getElementById('confirmOkBtn').onclick = () => { closeModal('confirm'); fn(); };
+  openModal('confirm');
+}
+
+window.previewCoordsM = function() {
+  const raw = document.getElementById('ramalCoordsM').value.trim();
+  const countEl = document.getElementById('coordCountM');
+  const mapEl = document.getElementById('previewMapM');
+  try {
+    const coords = JSON.parse(raw);
+    if (!Array.isArray(coords) || !coords.length) throw new Error();
+    countEl.textContent = `✓ ${coords.length} puntos cargados`;
+    mapEl.style.display = 'block'; setTimeout(() => drawRoute(coords, mapEl), 30);
+  } catch { countEl.textContent = raw.length > 5 ? '⚠ JSON inválido' : 'Sin coordenadas'; mapEl.style.display = 'none'; }
+}
+
+function drawRoute(coords, container) {
+  let cv = container.querySelector('canvas');
+  if (!cv) { cv = document.createElement('canvas'); container.appendChild(cv); }
+  const W = container.clientWidth || 460; const H = 200;
+  cv.width = W; cv.height = H;
+  Object.assign(cv.style, { position:'absolute', inset:'0', width:'100%', height:'100%' });
+  const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, W, H);
+  const lons = coords.map(c => c[0]); const lats = coords.map(c => c[1]);
+  const minLon=Math.min(...lons), maxLon=Math.max(...lons);
+  const minLat=Math.min(...lats), maxLat=Math.max(...lats);
+  const pad = 20;
+  const toX = lon => pad + (lon-minLon)/(maxLon-minLon||1) * (W-pad*2);
+  const toY = lat => H-pad - (lat-minLat)/(maxLat-minLat||1) * (H-pad*2);
+  ctx.strokeStyle='#3b82f6'; ctx.lineWidth=1.5; ctx.shadowColor='#3b82f6'; ctx.shadowBlur=4;
+  ctx.beginPath();
+  coords.forEach((c,i) => i===0 ? ctx.moveTo(toX(c[0]),toY(c[1])) : ctx.lineTo(toX(c[0]),toY(c[1])));
+  ctx.stroke();
+  [[coords[0],'#22c55e'],[coords[coords.length-1],'#ef4444']].forEach(([pt,col]) => {
+    ctx.fillStyle=col; ctx.shadowBlur=0; ctx.beginPath(); ctx.arc(toX(pt[0]),toY(pt[1]),5,0,Math.PI*2); ctx.fill();
+  });
+}
+
+window.toast = function(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type==='error' ? 'error' : '');
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target===bg) bg.classList.remove('open'); });
+});
+
+document.getElementById('loginId').addEventListener('keypress', e => { if (e.key === 'Enter') checkLoginId(); });
+document.getElementById('loginPass').addEventListener('keypress', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>
